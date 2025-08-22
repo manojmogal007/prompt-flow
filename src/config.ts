@@ -1,5 +1,2 @@
-// Backend API configuration
-export const BACKEND_BASE_URL =
-  import.meta.env.VITE_BACKEND_URL || "http://localhost:3000/api";
-
-
+export const APP_NAME = "PromptFlow Live";
+export const BACKEND_BASE_URL = "http://localhost:3000";

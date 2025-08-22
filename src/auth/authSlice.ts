@@ -1,4 +1,5 @@
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
+import type { RootState } from "../store/types";
 
 interface AuthState {
   accessToken: string;
@@ -19,4 +20,5 @@ const authSlice = createSlice({
 });
 
 export const { handleAccessToken } = authSlice.actions;
+export const accessTokenConfig = (state: RootState) => state.auth.accessToken;
 export default authSlice.reducer;

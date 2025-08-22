@@ -7,7 +7,7 @@ import { useApiQuery } from "../customHooks/apiHooks";
 export const PrivateRoute: React.FC = () => {
   // const { accessToken } = useAppSelector((state) => state.auth);
   // console.log("token", accessToken);
-  const get = useApiQuery(useGetAuthRequestQuery, "/user");
-  console.log("fetching test", get);
+  // const get = useApiQuery(useGetAuthRequestQuery, "/user");
+  // console.log("fetching test", get);
   return <Outlet />;
 };

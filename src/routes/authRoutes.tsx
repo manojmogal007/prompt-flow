@@ -1,5 +1,5 @@
 import { SignIn } from "../auth/pages/SignIn";
-import SignUp from "../auth/pages/SignUp";
+import { SignUp } from "../auth/pages/SignUp";
 
 export const authRoutes = {
   path: "auth",
