@@ -12,12 +12,12 @@ export const router = createBrowserRouter([
     path: "/prompt-flow",
     element: <App />,
     children: [
+      authRoutes,
       {
         index: true,
-        element: <Navigate to="/prompt-flow/app" replace />,
+        element: <Navigate to="/prompt-flow/workflows" replace />, 
       },
       appRoutes,
-      authRoutes,
     ],
   },
 ]);

@@ -1,3 +1,5 @@
+import { useAppDispatch } from "../../store/hooks";
+
 // Generic hook for any RTK Query endpoint
 export const useApiQuery = <T>(
   queryHook: (
@@ -18,6 +20,7 @@ export const useApiQuery = <T>(
   path: string,
   options?: { skipQuery?: boolean; polling?: number }
 ) => {
+  // const dispatch = useAppDispatch();
   const { data, isError, isLoading, isFetching, refetch, error } = queryHook(
     path,
     {
@@ -30,6 +33,10 @@ export const useApiQuery = <T>(
   const refetchApi = () => {
     refetch();
   };
+
+  // if (error?.status === 401) {
+  //   dispatch(handleStatusCode(401));
+  // }
 
   return {
     data,

@@ -1,12 +1,8 @@
-import "./App.css";
-import { MainLayout } from "./layouts/MainLayout";
+import './App.css';
+import RootLayout from './layouts/components/RootLayout';
 
 export const App: React.FC = () => {
-  return (
-    <>
-      <MainLayout />
-    </>
-  );
+  return <RootLayout />;
 };
 
 export default App;

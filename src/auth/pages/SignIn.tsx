@@ -1,34 +1,37 @@
-import { Eye, EyeOff, Lock, Mail, Zap } from "lucide-react";
-import React from "react";
-import { useApiMutation } from "../../utils/customHooks/apiHooks";
-import { usePostAuthRequestMutation } from "../../utils/services/authService";
-import { APP_NAME } from "../../config";
-import { useAppDispatch } from "../../store/hooks";
-import { handleAccessToken } from "../authSlice";
-import { Link, Navigate, useNavigate } from "react-router";
+import { Eye, EyeOff, Lock, Mail, Zap } from 'lucide-react';
+import React from 'react';
+import { useApiMutation } from '../../utils/customHooks/apiHooks';
+import { usePostAuthRequestMutation } from '../../utils/services/authService';
+import { APP_NAME } from '../../config';
+import { useAppDispatch } from '../../store/hooks';
+import { accessTokenConfig, handleAccessToken } from '../authSlice';
+import { Link, Navigate, useNavigate } from 'react-router';
+import { useSelector } from 'react-redux';
 
 export const SignIn: React.FC = () => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = React.useState(false);
+  const accessToken = useSelector(accessTokenConfig);
+  console.log(accessToken);
+  // const [formData, setFormData] = React.useState<{
+  //   email: string;
+  //   password: string;
+  // }>({ email: "manojmogal1999@gmail.com", password: "Manoj@1234" });
   const [formData, setFormData] = React.useState<{
     email: string;
     password: string;
-  }>({ email: "", password: "" });
+  }>({ email: '', password: '' });
 
-  const { isLoading, handleTrigger } = useApiMutation(
-    usePostAuthRequestMutation,
-    "/users/signin",
-    {
-      onSuccess: (data: any) => {
-        dispatch(handleAccessToken(data.accessToken));
-        navigate("/prompt-flow/app");
-      },
-      onError: (error) => {
-        console.log(error);
-      },
-    }
-  );
+  const { isLoading, handleTrigger } = useApiMutation(usePostAuthRequestMutation, '/users/signin', {
+    onSuccess: (data: any) => {
+      dispatch(handleAccessToken(data.accessToken));
+      navigate('/prompt-flow/workflows');
+    },
+    onError: (error) => {
+      console.log(error);
+    },
+  });
 
   const triggerSignIn = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -41,85 +44,77 @@ export const SignIn: React.FC = () => {
     });
   };
   return (
-    <div className="w-full flex bg-white dark:bg-dark-900">
+    <div className='w-full flex bg-white dark:bg-dark-900 h-[100dvh]'>
       {/* Left Side - Login Form */}
-      <div className="flex-1 flex items-center justify-center px-4 sm:px-6 lg:px-8 bg-white dark:bg-dark-900">
-        <div className="max-w-md w-full space-y-8">
+      <div className='flex-1 flex items-center justify-center px-4 sm:px-6 lg:px-8 bg-white dark:bg-dark-900'>
+        <div className='max-w-md w-full space-y-8'>
           {/* Header */}
-          <div className="text-center ">
-            <div className="flex items-center justify-center mb-3">
-              <div className="w-12 h-12 bg-blue-600 rounded-xl flex items-center justify-center">
-                <Zap className="w-7 h-7 text-white" />
+          <div className='text-center '>
+            <div className='flex items-center justify-center mb-3'>
+              <div className='w-12 h-12 bg-blue-600 rounded-xl flex items-center justify-center'>
+                <Zap className='w-7 h-7 text-white' />
               </div>
             </div>
-            <div className="flex items-center justify-center space-x-3 mb-6">
-              <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-                Sign in to {APP_NAME}
-              </h1>
+            <div className='flex items-center justify-center space-x-3 mb-6'>
+              <h1 className='text-3xl font-bold text-gray-900 dark:text-white'>Sign in to {APP_NAME}</h1>
             </div>
           </div>
 
           {/* sign in Form */}
-          <form className="mt-8 space-y-6" onSubmit={triggerSignIn}>
-            <div className="space-y-4">
+          <form className='mt-8 space-y-6' onSubmit={triggerSignIn}>
+            <div className='space-y-4'>
               {/* Email Field */}
               <div>
-                <label
-                  htmlFor="email"
-                  className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-                >
+                <label htmlFor='email' className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2'>
                   Email address
                 </label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <Mail className="h-5 w-5 text-gray-400 dark:text-gray-500" />
+                <div className='relative'>
+                  <div className='absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none'>
+                    <Mail className='h-5 w-5 text-gray-400 dark:text-gray-500' />
                   </div>
                   <input
-                    id="email"
-                    name="email"
-                    type="email"
-                    autoComplete="email"
+                    id='email'
+                    name='email'
+                    type='email'
+                    autoComplete='email'
                     required
                     value={formData.email}
                     onChange={handleInputChange}
-                    className="block w-full pl-10 pr-3 py-3 border border-gray-300 dark:border-dark-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 placeholder-gray-400 dark:placeholder-gray-500 bg-white dark:bg-dark-800 text-gray-900 dark:text-white"
-                    placeholder="Your email address"
+                    className='block w-full pl-10 pr-3 py-3 border border-gray-300 dark:border-dark-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none focus:border-transparent transition-all duration-200 placeholder-gray-400 dark:placeholder-gray-500 bg-white dark:bg-dark-800 text-gray-900 dark:text-white'
+                    placeholder='Your email address'
                   />
                 </div>
               </div>
 
               {/* Password Field */}
               <div>
-                <label
-                  htmlFor="password"
-                  className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-                >
+                <label htmlFor='password' className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2'>
                   Password
                 </label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <Lock className="h-5 w-5 text-gray-400 dark:text-gray-500" />
+                <div className='relative'>
+                  <div className='absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none'>
+                    <Lock className='h-5 w-5 text-gray-400 dark:text-gray-500' />
                   </div>
                   <input
-                    id="password"
-                    name="password"
-                    type={showPassword ? "text" : "password"}
-                    autoComplete="current-password"
+                    id='password'
+                    name='password'
+                    type={showPassword ? 'text' : 'password'}
+                    autoComplete='current-password'
                     required
                     value={formData.password}
                     onChange={handleInputChange}
-                    className="block w-full pl-10 pr-12 py-3 border border-gray-300 dark:border-dark-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 placeholder-gray-400 dark:placeholder-gray-500 bg-white dark:bg-dark-800 text-gray-900 dark:text-white"
-                    placeholder="Your password"
+                    className='block w-full pl-10 pr-12 py-3 border border-gray-300 dark:border-dark-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none focus:border-transparent transition-all duration-200 placeholder-gray-400 dark:placeholder-gray-500 bg-white dark:bg-dark-800 text-gray-900 dark:text-white'
+                    placeholder='Your password'
                   />
                   <button
-                    type="button"
-                    className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                    type='button'
+                    className='absolute inset-y-0 right-0 pr-3 flex items-center'
                     onClick={() => setShowPassword(!showPassword)}
                   >
                     {showPassword ? (
-                      <EyeOff className="h-5 w-5 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-400" />
+                      <EyeOff className='h-5 w-5 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-400' />
                     ) : (
-                      <Eye className="h-5 w-5 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-400" />
+                      <Eye className='h-5 w-5 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-400' />
                     )}
                   </button>
                 </div>
@@ -135,26 +130,23 @@ export const SignIn: React.FC = () => {
 
             {/* Submit Button */}
             <button
-              type="submit"
+              type='submit'
               disabled={isLoading}
-              className="w-full flex-1 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className='w-full flex-1 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors'
             >
               {isLoading
                 ? // <div className="flex items-center space-x-2">
                   //   {/* <LoadingSpinner /> */}
                   //   <span>Signing in...</span>
                   // </div>
-                  "Signing in..."
-                : "Sign in"}
+                  'Signing in...'
+                : 'Sign in'}
             </button>
 
-            <div className="text-center">
+            <div className='text-center'>
               <p>
-                Don’t have an account?{" "}
-                <Link
-                  to="/prompt-flow/auth/signup"
-                  className="text-sm text-blue-600 hover:text-blue-500 transition-colors hover:underline"
-                >
+                Don’t have an account?{' '}
+                <Link to='/prompt-flow/auth/signup' className='text-sm text-blue-600 hover:text-blue-500 transition-colors hover:underline'>
                   Sign up
                 </Link>
               </p>
