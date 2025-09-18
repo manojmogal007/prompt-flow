@@ -17,6 +17,8 @@ interface Props {
   userRole: string;
   formData: any;
   setFormData: any;
+  collaborators: any[];
+  workflowCreatorId: string;
 }
 
 export const Header: React.FC<Props> = ({ nodes, edges, userRole, formData, setFormData }) => {
@@ -24,7 +26,7 @@ export const Header: React.FC<Props> = ({ nodes, edges, userRole, formData, setF
   const { showToast } = useToast();
   const navigate = useNavigate();
   const { encodedParams } = useParams();
-  const { id: workflowId, name } = decodeNameAndId(encodedParams);
+  const { id: workflowId } = decodeNameAndId(encodedParams);
   const isNewWorkflow = encodedParams === 'new' || false;
   const [open, setOpen] = useState(false);
   const saveWorkflow = useApiMutation(usePostWorkflowsRequestMutation, '/workflow/createWorkflow', {

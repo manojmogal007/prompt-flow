@@ -1,6 +1,6 @@
-import React, { useState, type FC } from 'react';
-import { Trash2, Calendar, User, GitBranch, Users } from 'lucide-react';
-import { useNavigate, useParams } from 'react-router';
+import { type FC } from 'react';
+import { Trash2, User, Users } from 'lucide-react';
+import { useParams } from 'react-router';
 import Loader from '../../../utils/helperComponents/Loader';
 import { useApiMutation } from '../../../utils/customHooks/apiHooks';
 import { usePostContributorsRequestMutation } from '../../../utils/services/genericService';
@@ -65,7 +65,7 @@ const ContributorsTable: FC<Props> = ({ contributors, isLoading }) => {
                 </td>
               </tr>
             ) : (
-              contributors.map((contributor, index) => {
+              contributors.map((contributor) => {
                 return (
                   <tr key={contributor._id} className={`hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors`}>
                     {/* Workflow Name & Info */}

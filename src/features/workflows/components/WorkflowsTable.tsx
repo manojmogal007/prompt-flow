@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Trash2, Calendar, User, GitBranch } from 'lucide-react';
 import { useNavigate } from 'react-router';
 import Loader from '../../../utils/helperComponents/Loader';
@@ -16,7 +16,6 @@ interface Props {
 export const WorkflowsTable: React.FC<Props> = ({ workflows = [], activeTab, isLoading = false }) => {
   const navigate = useNavigate();
   const { showToast } = useToast();
-  const [selectedWorkflow, setSelectedWorkflow] = useState<string | null>(null);
 
   const { handleTrigger } = useApiMutation(usePostWorkflowsDeleteRequestMutation, '/workflow/deleteWorkflow', {
     onSuccess: (data: any) => {
@@ -77,12 +76,10 @@ export const WorkflowsTable: React.FC<Props> = ({ workflows = [], activeTab, isL
                 </td>
               </tr>
             ) : (
-              workflows.map((workflow, index) => (
+              workflows.map((workflow) => (
                 <tr
                   key={workflow._id}
-                  className={`hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors cursor-pointer ${
-                    selectedWorkflow === workflow._id ? 'bg-blue-50 dark:bg-blue-900/20' : ''
-                  }`}
+                  className={`hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors cursor-pointer`}
                   onClick={() => handleNavigate(workflow._id, workflow.name)}
                 >
                   {/* Workflow Name & Info */}

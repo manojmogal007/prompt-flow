@@ -21,7 +21,7 @@ export const PromptSteps: React.FC<PromptStepProps> = ({ onDragStart, userRole }
   const { user } = useAuth();
   const { showToast } = useToast();
   const { encodedParams } = useParams();
-  const { id: workflowId, name } = decodeNameAndId(encodedParams || '');
+  const { id: workflowId } = decodeNameAndId(encodedParams || '');
   const [editStep, setEditstep] = useState<any>({});
 
   const getPromptSteps = useApiQuery(
@@ -32,7 +32,7 @@ export const PromptSteps: React.FC<PromptStepProps> = ({ onDragStart, userRole }
     },
   );
 
-  const { handleTrigger, isLoading } = useApiMutation(usePostStepsRequestMutation, '/steps/deleteStep', {
+  const { handleTrigger } = useApiMutation(usePostStepsRequestMutation, '/steps/deleteStep', {
     onSuccess: () => {
       showToast('Step added successfully', 'success');
     },
@@ -76,7 +76,7 @@ export const PromptSteps: React.FC<PromptStepProps> = ({ onDragStart, userRole }
           </span> */}
         </div>
 
-        {Object.entries(systemSteps.steps)?.map(([category, steps], index) => (
+        {Object.entries(systemSteps.steps)?.map(([category, steps]) => (
           <div key={category} className='mb-4'>
             <h3 className='text-sm font-medium text-gray-600 mb-3 px-2 py-1 bg-gray-50 rounded-md'>{category}</h3>
             <div className='space-y-2'>

@@ -1,4 +1,3 @@
-import { useAppDispatch } from "../../store/hooks";
 
 // Generic hook for any RTK Query endpoint
 export const useApiQuery = <T>(

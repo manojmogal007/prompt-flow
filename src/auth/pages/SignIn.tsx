@@ -1,12 +1,13 @@
-import { Eye, EyeOff, Lock, Mail, Zap } from 'lucide-react';
+import { Eye, EyeOff, Lock, Mail } from 'lucide-react';
 import React from 'react';
 import { useApiMutation } from '../../utils/customHooks/apiHooks';
 import { usePostAuthRequestMutation } from '../../utils/services/authService';
 import { APP_NAME } from '../../config';
 import { useAppDispatch } from '../../store/hooks';
 import { accessTokenConfig, handleAccessToken } from '../authSlice';
-import { Link, Navigate, useNavigate } from 'react-router';
+import { Link, useNavigate } from 'react-router';
 import { useSelector } from 'react-redux';
+import iconImage from '../../../assets/app_icon.png';
 
 export const SignIn: React.FC = () => {
   const dispatch = useAppDispatch();
@@ -51,8 +52,8 @@ export const SignIn: React.FC = () => {
           {/* Header */}
           <div className='text-center '>
             <div className='flex items-center justify-center mb-3'>
-              <div className='w-12 h-12 bg-blue-600 rounded-xl flex items-center justify-center'>
-                <Zap className='w-7 h-7 text-white' />
+              <div className='w-12 h-12 rounded-xl flex items-center justify-center'>
+                <img src={iconImage} alt='App Icon' className='w-14 h-14' />
               </div>
             </div>
             <div className='flex items-center justify-center space-x-3 mb-6'>

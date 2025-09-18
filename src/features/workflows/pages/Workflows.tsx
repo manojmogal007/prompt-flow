@@ -81,12 +81,12 @@ export const Workflows: React.FC = () => {
       <div className='px-6 py-2 border-b border-gray-200 dark:border-gray-700'>
         <div className='flex items-center justify-between'>
           <div className='flex items-center space-x-4'>
-            <h1 className='text-xl font-semibold text-gray-900 dark:text-gray-100'>Workflows</h1>
-          </div>
-          <div className='flex items-center space-x-2'>
+            {/* <h1 className='text-xl font-semibold text-gray-900 dark:text-gray-100'>Workflows</h1> */}
             <div className='w-[400px]'>
               <Searchbar value={tempSearchText} handleInput={handleInput} placeholder='Search workflows' />
             </div>
+          </div>
+          <div className='flex items-center space-x-2'>
             <TabSwitcher activeTab={activeTab} setActiveTab={handleTabChange} />
             <Button triggerClick={() => navigate('/prompt-flow/workflows/new')} label={'Create Workflow'} icon={Plus} />
           </div>

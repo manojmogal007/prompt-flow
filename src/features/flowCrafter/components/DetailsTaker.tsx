@@ -1,7 +1,7 @@
-import React, { type FC } from 'react';
+import { type FC } from 'react';
 import { Input } from '../../../utils/helperComponents/Input';
 import Button from '../../../utils/helperComponents/Button';
-import { SaveAll, ArrowLeftFromLine } from 'lucide-react';
+import { SaveAll } from 'lucide-react';
 
 interface Props {
   name: string;

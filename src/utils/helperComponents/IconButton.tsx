@@ -1,14 +1,15 @@
-import React, { type FC } from 'react';
+import { type FC } from 'react';
 import { useTheme } from '../../contexts/ThemeContext';
 
 interface Props {
   size?: 'sm' | 'md' | 'lg';
   triggerClick: () => void;
   Icon: any;
+  disabled?: boolean;
 }
 
-const IconButton: FC<Props> = ({ size = 'md', triggerClick, Icon }) => {
-  const { theme, toggleTheme } = useTheme();
+const IconButton: FC<Props> = ({ size = 'md', triggerClick, Icon, disabled = false }) => {
+  const { theme } = useTheme();
   const sizeClasses = {
     sm: 'w-6 h-6',
     md: 'w-8 h-8',
@@ -22,6 +23,7 @@ const IconButton: FC<Props> = ({ size = 'md', triggerClick, Icon }) => {
   };
   return (
     <button
+      disabled={disabled}
       onClick={triggerClick}
       className={`
         ${sizeClasses[size]}

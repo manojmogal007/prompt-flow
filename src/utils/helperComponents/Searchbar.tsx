@@ -1,4 +1,4 @@
-import React, { type FC } from 'react';
+import  { type FC } from 'react';
 import { Search } from 'lucide-react';
 interface Props {
   value: any;

@@ -23,6 +23,7 @@ import {
 } from '@liveblocks/react/suspense';
 import { LIVEBLOCK_API_KEY } from '../../../config';
 import { LiveList, LiveObject } from '@liveblocks/client';
+import Loader from '../../../utils/helperComponents/Loader';
 
 // Collaborative FlowCrafter Component
 const CollaborativeFlowCrafter: React.FC = () => {
@@ -114,7 +115,7 @@ const CollaborativeFlowCrafter: React.FC = () => {
       nodes,
       edges,
     };
-    console.log(JSON.stringify(dbStoredJson) !== JSON.stringify(liveJson), others?.length);
+    // console.log(JSON.stringify(dbStoredJson) !== JSON.stringify(liveJson), others?.length);
     if (JSON.stringify(dbStoredJson) !== JSON.stringify(liveJson) && workflow?.data?.workflow?.workflowJson && others?.length === 0) {
       const nodesData = workflow?.data?.workflow?.workflowJson?.nodes;
       const edgesData = workflow?.data?.workflow?.workflowJson?.edges;
@@ -145,6 +146,17 @@ const CollaborativeFlowCrafter: React.FC = () => {
     //   });
     // }
   }, [workflow?.data?.workflow]);
+
+  // useEffect(() => {
+  //   if (encodedParams === 'new') {
+  //     updateNodes([]);
+  //     updateEdges([]);
+  //     updateFormData({
+  //       name: '',
+  //       description: '',
+  //     });
+  //   }
+  // }, [encodedParams]);
 
   // Enhanced callbacks that sync to Liveblocks
   const onConnect = useCallback(
@@ -336,7 +348,15 @@ const CollaborativeFlowCrafter: React.FC = () => {
 export const FlowCrafter: React.FC = () => {
   const { encodedParams } = useParams();
   const { id: workflowId } = decodeNameAndId(encodedParams || '');
-  const { user } = useAuth();
+  // const { user } = useAuth();
+
+  // if (encodedParams === 'new') {
+  //   return (
+  //     <div className='w-full h-full'>
+  //       <CollaborativeFlowCrafter />
+  //     </div>
+  //   );
+  // }
 
   return (
     <LiveblocksProvider
@@ -369,7 +389,16 @@ export const FlowCrafter: React.FC = () => {
           }),
         }}
       >
-        <ClientSideSuspense fallback={<div>Loading workflow...</div>}>
+        <ClientSideSuspense
+          fallback={
+            <div className='min-h-screen flex items-center justify-center'>
+              <div className='flex flex-col items-center gap-2'>
+                <Loader />
+                <p>Loading workflow...</p>
+              </div>
+            </div>
+          }
+        >
           <CollaborativeFlowCrafter />
         </ClientSideSuspense>
       </RoomProvider>

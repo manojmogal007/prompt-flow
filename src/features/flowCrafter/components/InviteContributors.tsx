@@ -1,4 +1,4 @@
-import React, { use, useState, type FC } from 'react';
+import { useMemo, useState, type FC } from 'react';
 import { useParams } from 'react-router';
 import { UserPlus, Send } from 'lucide-react';
 import IconButton from '../../../utils/helperComponents/IconButton';
@@ -10,6 +10,7 @@ import { useToast } from '../../../hooks/useToast';
 import { useAuth } from '../../../auth/useAuth';
 import ContributorsTable from './ContributorsTable';
 import { decodeNameAndId } from '../../../utils/helperFunctions/HelperFunctions';
+import Select from '../../../utils/helperComponents/Select';
 
 const InviteContributors: FC = () => {
   const { user } = useAuth();
@@ -17,12 +18,12 @@ const InviteContributors: FC = () => {
   const { id: workflowId, name } = decodeNameAndId(encodedParams || '');
   const { showToast } = useToast();
   const [open, setOpen] = useState<boolean>(false);
-  const [contributorDetails, setContributorDetails] = useState<Record<string, any>>({});
+  const [contributorDetails, setContributorDetails] = useState<Record<string, any>>({ role: 'viewer' });
 
-  const { handleTrigger, isLoading } = useApiMutation(usePostContributorsRequestMutation, '/contributor/addContributor', {
+  const { handleTrigger } = useApiMutation(usePostContributorsRequestMutation, '/contributor/addContributor', {
     onSuccess: (data: any) => {
       showToast(data?.message, 'success');
-      setContributorDetails({});
+      setContributorDetails({ role: 'viewer' });
     },
     onError: (error: any) => {
       showToast(error?.data?.message, 'error');
@@ -40,20 +41,30 @@ const InviteContributors: FC = () => {
   const handleContributorDetails = (val: any, key: string) => {
     setContributorDetails((prev) => ({ ...prev, [key]: val }));
   };
+
+  const roleConfig = [
+    { label: 'Viewer', value: 'viewer' },
+    { label: 'Editor', value: 'editor' },
+  ];
   // console.log(contributorDetails);
+  const isInviteValid = useMemo(() => {
+    return contributorDetails?.email && contributorDetails?.role;
+  }, [contributorDetails]);
+
   const sendInvite = async () => {
     const payload = {
       workflowId,
       email: contributorDetails.email,
       senderName: `${user?.firstName} ${user?.lastName || ''}`,
       workflowLink: window.location.href,
-      workflowName: 'Formal email generator',
+      workflowName: name,
       ownerId: user?.id,
-      role: 'viewer',
+      role: contributorDetails?.role,
     };
-    if (contributorDetails.email === user?.email) return showToast('Sorry! You cannot invite yourself', 'error');
+    if (contributorDetails.email === user?.email) return showToast('Sorry! You cannot send invite to yourself', 'error');
     await handleTrigger(payload);
   };
+  console.log(contributorDetails);
   return (
     <div>
       <IconButton Icon={UserPlus} triggerClick={handleDrawerOpen} />
@@ -68,7 +79,12 @@ const InviteContributors: FC = () => {
               value={contributorDetails.email}
               size={'sm'}
             />
-            <IconButton Icon={Send} triggerClick={sendInvite} size='md' />
+            <div className='w-[150px]'>
+              <Select value={contributorDetails.role} handleChange={handleContributorDetails} valKey='role' options={roleConfig} />
+            </div>
+            <div className='w-[50px]'>
+              <IconButton Icon={Send} triggerClick={sendInvite} size='md' disabled={!isInviteValid} />
+            </div>
           </div>
           <div className='mt-3'>
             <ContributorsTable contributors={contributors} isLoading={getContibutors?.isLoading} />

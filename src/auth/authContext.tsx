@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useApiMutation } from '../utils/customHooks/apiHooks';
 import { usePostAuthRequestMutation } from '../utils/services/authService';
 import { useAppDispatch } from '../store/hooks';
-import { useNavigate } from 'react-router';
+// import { useNavigate } from 'react-router';
 import { handleAccessToken } from './authSlice';
 
 interface AuthContextType {
@@ -17,7 +17,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<Record<string, any>>({});
 
   const { handleTrigger } = useApiMutation(usePostAuthRequestMutation, '/users/signout', {
-    onSuccess: (data: any) => {
+    onSuccess: () => {
       dispatch(handleAccessToken(''));
     },
     onError: (error) => {

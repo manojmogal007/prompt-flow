@@ -1,4 +1,4 @@
-import React, { Fragment, useMemo, type FC } from 'react';
+import { Fragment, useMemo, type FC } from 'react';
 import { useLocation } from 'react-router';
 import AuthLayout from '../AuthLayout';
 import { MainLayout } from '../MainLayout';
