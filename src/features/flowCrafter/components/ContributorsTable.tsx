@@ -1,15 +1,18 @@
-import { type FC } from 'react';
-import { Trash2, User, Users } from 'lucide-react';
+import { useState, type FC } from 'react';
+import { Trash2, User, Users, SquarePen, Save, SquareX } from 'lucide-react';
 import { useParams } from 'react-router';
 import Loader from '../../../utils/helperComponents/Loader';
 import { useApiMutation } from '../../../utils/customHooks/apiHooks';
-import { usePostContributorsRequestMutation } from '../../../utils/services/genericService';
+import { usePostContributorsRequestMutation, useUpdateContributorsRequestMutation } from '../../../utils/services/genericService';
 import { useToast } from '../../../hooks/useToast';
 import { decodeNameAndId } from '../../../utils/helperFunctions/HelperFunctions';
+import Select from '../../../utils/helperComponents/Select';
+import { Tooltip } from '../../../utils/helperComponents/Tooltip';
 
 interface Props {
   contributors: any[];
   isLoading: boolean;
+  roleConfig: any;
 }
 
 const getStatus = (status: string) => {
@@ -25,10 +28,12 @@ const getStatus = (status: string) => {
   }
 };
 
-const ContributorsTable: FC<Props> = ({ contributors, isLoading }) => {
+const ContributorsTable: FC<Props> = ({ contributors, isLoading, roleConfig }) => {
   const { showToast } = useToast();
   const { encodedParams } = useParams();
   const { id: workflowId } = decodeNameAndId(encodedParams);
+  const [editDetails, setEditDetails] = useState<any>({});
+  const isContributor = Boolean(editDetails?.contributorId) || false;
 
   const { handleTrigger } = useApiMutation(usePostContributorsRequestMutation, '/contributor/removeContributor', {
     onSuccess: (data: any) => {
@@ -38,10 +43,41 @@ const ContributorsTable: FC<Props> = ({ contributors, isLoading }) => {
       showToast(error?.data?.message, 'error');
     },
   });
+  const { handleTrigger: handleUpdateDetails } = useApiMutation(
+    useUpdateContributorsRequestMutation,
+    isContributor ? '/contributor/updateContributor' : '/invite/updateInvite',
+    {
+      onSuccess: (data: any) => {
+        showToast(data?.message || 'Contributor details updated successfully', 'success');
+      },
+      onError: (error: any) => {
+        showToast(error?.data?.message, 'error');
+      },
+    },
+  );
+
   const handleDelete = async (contributor: any) => {
     const payload = { workflowId, contributorId: contributor?.contributorId, inviteId: contributor?._id };
     await handleTrigger(payload);
   };
+  const handleEdit = (contributor: any) => {
+    setEditDetails(contributor);
+  };
+
+  const triggerUpdate = async (contributor: any) => {
+    if (contributor?.role === editDetails?.role) {
+      // const payload = { workflowId, contributorId: contributor?.contributorId, inviteId: contributor?._id, role: editDetails?.role };
+      // await handleTrigger(payload);
+      showToast('No changes made', 'success');
+      return;
+    }
+    const payload = isContributor
+      ? { workflowId, contributorId: editDetails?.contributorId, role: editDetails?.role, email: editDetails?.email }
+      : { workflowId, inviteId: editDetails?._id, role: editDetails?.role };
+    await handleUpdateDetails(payload);
+    setEditDetails({});
+  };
+
   return (
     <div className='w-full bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700'>
       {/* Table */}
@@ -89,7 +125,32 @@ const ContributorsTable: FC<Props> = ({ contributors, isLoading }) => {
                     </td>
                     <td className='px-6 py-4'>
                       <div className='flex items-center'>
-                        <div className='text-sm font-medium text-gray-900 dark:text-gray-100'>{contributor.role}</div>
+                        {contributor?.contributorId === editDetails?.contributorId &&
+                        contributor?._id === editDetails?._id &&
+                        editDetails ? (
+                          <div className='w-[100px] flex items-center space-x-2'>
+                            <Select
+                              value={editDetails?.role}
+                              handleChange={(val: any) => setEditDetails({ ...editDetails, role: val })}
+                              options={roleConfig}
+                              size={'sm'}
+                            />
+                            <Tooltip text='Save changes' width={100}>
+                              {' '}
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  triggerUpdate(contributor);
+                                }}
+                                className='text-gray-400 dark:text-gray-500 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors'
+                              >
+                                <Save className='w-4 h-4 text-gray-400 dark:text-gray-500 hover:text-blue-600' />
+                              </button>
+                            </Tooltip>
+                          </div>
+                        ) : (
+                          <div className='text-sm font-medium text-gray-900 dark:text-gray-100'>{contributor.role}</div>
+                        )}
                       </div>
                     </td>
                     <td className='px-6 py-4'>
@@ -108,13 +169,35 @@ const ContributorsTable: FC<Props> = ({ contributors, isLoading }) => {
                     <td className='px-6 py-4'>
                       <div className='flex items-center space-x-2'>
                         <>
+                          {contributor?.contributorId === editDetails?.contributorId && contributor?._id === editDetails?._id ? (
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleEdit({});
+                              }}
+                              className='text-gray-400 dark:text-gray-500 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors'
+                            >
+                              <SquareX className='w-4 h-4' />
+                            </button>
+                          ) : (
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleEdit(contributor);
+                              }}
+                              className='text-gray-400 dark:text-gray-500 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors'
+                            >
+                              <SquarePen className='w-4 h-4' />
+                            </button>
+                          )}
+                        </>
+                        <>
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
                               handleDelete(contributor);
                             }}
-                            className='p-2 text-gray-400 dark:text-gray-500 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors'
-                            title='Delete Workflow'
+                            className='text-gray-400 dark:text-gray-500 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors'
                           >
                             <Trash2 className='w-4 h-4' />
                           </button>

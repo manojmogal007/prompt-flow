@@ -24,13 +24,16 @@ import {
 import { LIVEBLOCK_API_KEY } from '../../../config';
 import { LiveList, LiveObject } from '@liveblocks/client';
 import Loader from '../../../utils/helperComponents/Loader';
+import { useToast } from '../../../hooks/useToast';
 
 // Collaborative FlowCrafter Component
 const CollaborativeFlowCrafter: React.FC = () => {
   const { user } = useAuth();
+  const { showToast } = useToast();
   const { encodedParams } = useParams();
   const { id: workflowId } = decodeNameAndId(encodedParams || '');
   const reactFlowWrapper = useRef<HTMLDivElement | null>(null);
+  const lastWarningRef = useRef<number>(0);
 
   // Liveblocks hooks
   const nodes = useStorage((root) => root.nodes);
@@ -99,6 +102,8 @@ const CollaborativeFlowCrafter: React.FC = () => {
     skipQuery: !Boolean(user?.id && encodedParams !== 'new'),
   });
   const userRole = workflow?.data?.userRole || '';
+  const restrictEditing = userRole === 'viewer' || false;
+  const isOwner = userRole === 'owner' || false;
   const workflowCreatorId = workflow?.data?.workflow?.workflowJson?.creatorId || '';
 
   // Initialize storage from API data
@@ -158,20 +163,38 @@ const CollaborativeFlowCrafter: React.FC = () => {
   //   }
   // }, [encodedParams]);
 
-  // Enhanced callbacks that sync to Liveblocks
+  // Enhanced callbacks that sync to Liveblocksconst
+  const triggerWarning = () => {
+    const now = Date.now();
+    if (now - lastWarningRef.current < 3000) {
+      return; 
+    }
+    lastWarningRef.current = now;
+    showToast('You are not allowed to edit this workflow', 'warning');
+  };
+
   const onConnect = useCallback(
     (params: any) => {
+      if (restrictEditing) {
+        triggerWarning();
+        return;
+      }
+
       const newEdges: any = addEdge(params, localEdges);
       setLocalEdges(newEdges);
       updateEdges(newEdges);
       broadcast({ type: 'EDGE_CREATED', edgeId: params.id });
     },
-    [localEdges, updateEdges, broadcast],
+    [localEdges, updateEdges, broadcast, restrictEditing],
   );
 
   // Handle node changes (position, selection, etc.) and sync to Liveblocks
   const handleNodesChange = useCallback(
     (changes: any) => {
+      if (restrictEditing) {
+        triggerWarning();
+        return;
+      }
       // Apply changes to local state first
       onNodesChange(changes);
 
@@ -190,12 +213,16 @@ const CollaborativeFlowCrafter: React.FC = () => {
         }, 100);
       }
     },
-    [onNodesChange, updateNodes],
+    [onNodesChange, updateNodes, restrictEditing],
   );
 
   // Handle edge changes and sync to Liveblocks
   const handleEdgesChange = useCallback(
     (changes: any) => {
+      if (restrictEditing) {
+        triggerWarning();
+        return;
+      }
       // Apply changes to local state first
       onEdgesChange(changes);
 
@@ -214,18 +241,25 @@ const CollaborativeFlowCrafter: React.FC = () => {
         }, 100);
       }
     },
-    [onEdgesChange, updateEdges],
+    [onEdgesChange, updateEdges, restrictEditing],
   );
 
   const onDragOver = useCallback((event: React.DragEvent) => {
     event.preventDefault();
+    if (restrictEditing) {
+      triggerWarning();
+      return;
+    }
     event.dataTransfer.dropEffect = 'move';
   }, []);
 
   const onDrop = useCallback(
     (event: React.DragEvent) => {
       event.preventDefault();
-
+      if (restrictEditing) {
+        triggerWarning();
+        return;
+      }
       if (!type) {
         return;
       }
@@ -247,10 +281,14 @@ const CollaborativeFlowCrafter: React.FC = () => {
       updateNodes(newNodes);
       setType(null);
     },
-    [screenToFlowPosition, type, setType, draggingStepData, localNodes, updateNodes],
+    [screenToFlowPosition, type, setType, draggingStepData, localNodes, updateNodes, restrictEditing],
   );
 
   const onDragStart = (event: React.DragEvent<HTMLDivElement>, nodeType: string, step: any) => {
+    if (restrictEditing) {
+      triggerWarning();
+      return;
+    }
     setDraggingStepData(step);
     setType(nodeType);
     event.dataTransfer.setData('application/reactflow', nodeType);
@@ -258,6 +296,10 @@ const CollaborativeFlowCrafter: React.FC = () => {
   };
 
   const removeStep = (stepId: string) => {
+    if (restrictEditing) {
+      triggerWarning();
+      return;
+    }
     const newNodes = localNodes.filter((n: any) => n.id !== stepId);
     setLocalNodes(newNodes);
     updateNodes(newNodes);
@@ -265,12 +307,20 @@ const CollaborativeFlowCrafter: React.FC = () => {
   };
 
   const handleFormDataChange = (newFormData: Record<string, string>) => {
+    if (restrictEditing) {
+      triggerWarning();
+      return;
+    }
     setLocalFormData(newFormData);
     updateFormData(newFormData);
   };
 
   // Handle node selection for presence
   const handleNodeClick = (_event: React.MouseEvent, node: any) => {
+    if (restrictEditing) {
+      triggerWarning();
+      return;
+    }
     updateMyPresence({ selectedNodeId: node.id });
     broadcast({ type: 'NODE_SELECTED', nodeId: node.id });
   };
@@ -301,7 +351,7 @@ const CollaborativeFlowCrafter: React.FC = () => {
     <div className='w-full min-h-full'>
       <div className='w-full min-h-full flex gap-2'>
         <div className='w-[300px] min-h-full'>
-          <PromptSteps onDragStart={onDragStart} userRole={userRole} />
+          <PromptSteps onDragStart={onDragStart} isOwner={isOwner} />
         </div>
         <div className='w-full min-h-full'>
           <div className='dndflow w-full h-full'>

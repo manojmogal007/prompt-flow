@@ -14,10 +14,10 @@ type NodeType = 'genericNode';
 
 interface PromptStepProps {
   onDragStart: (event: React.DragEvent<HTMLDivElement>, nodeType: NodeType, step: any) => void;
-  userRole: string;
+  isOwner: boolean;
 }
 
-export const PromptSteps: React.FC<PromptStepProps> = ({ onDragStart, userRole }) => {
+export const PromptSteps: React.FC<PromptStepProps> = ({ onDragStart, isOwner }) => {
   const { user } = useAuth();
   const { showToast } = useToast();
   const { encodedParams } = useParams();
@@ -113,7 +113,7 @@ export const PromptSteps: React.FC<PromptStepProps> = ({ onDragStart, userRole }
             <NotebookPen className='mr-2 h-5 w-5' />
             Custom Steps
           </h2>
-          <AddCustomStep editStep={editStep} setEditstep={setEditstep} />
+          {isOwner && <AddCustomStep editStep={editStep} setEditstep={setEditstep} />}
         </div>
 
         {customSteps?.steps?.length ? (
@@ -127,7 +127,7 @@ export const PromptSteps: React.FC<PromptStepProps> = ({ onDragStart, userRole }
                 }}
                 draggable
               >
-                {userRole === 'owner' && (
+                {isOwner && (
                   <div className='absolute -top-2.5 right-2 border rounded border-gray-400 bg-white px-1 py-0.5 flex items-center opacity-0 group-hover:opacity-100'>
                     <div className='opacity-100 group-hover:opacity-100 transition-opacity border-r-1 border-indigo-500 mr-1 pr-1'>
                       <SquarePen className='w-3.5 h-3.5 text-grey-500 hover:cursor-pointer' onClick={() => handleEdit(step)} />

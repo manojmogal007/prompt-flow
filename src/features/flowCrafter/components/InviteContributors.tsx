@@ -87,7 +87,7 @@ const InviteContributors: FC = () => {
             </div>
           </div>
           <div className='mt-3'>
-            <ContributorsTable contributors={contributors} isLoading={getContibutors?.isLoading} />
+            <ContributorsTable contributors={contributors} isLoading={getContibutors?.isLoading} roleConfig={roleConfig} />
           </div>
         </div>
       </Drawer>
