@@ -25,6 +25,28 @@ import { LIVEBLOCK_API_KEY } from '../../../config';
 import { LiveList, LiveObject } from '@liveblocks/client';
 import Loader from '../../../utils/helperComponents/Loader';
 import { useToast } from '../../../hooks/useToast';
+import InputTaker from '../components/nodes/InputTaker';
+
+const inputNode = {
+  id: 'cb02b245-7d6c-4925-96f2-c30328d972ba',
+  type: 'inputNode',
+  position: {
+    x: 0,
+    y: 0,
+  },
+  data: {
+    _id: '68a1e306b2cb2d799ad378a4',
+    name: 'Text Input',
+    prompt: 'Summarize the following customer review into 2–3 sentences.',
+    type: 'system',
+    category: 'Summarization',
+    __v: 0,
+  },
+  measured: {
+    width: 400,
+    height: 112,
+  },
+};
 
 // Collaborative FlowCrafter Component
 const CollaborativeFlowCrafter: React.FC = () => {
@@ -54,10 +76,10 @@ const CollaborativeFlowCrafter: React.FC = () => {
   const broadcast = useBroadcastEvent();
 
   // Local ReactFlow state (will sync with Liveblocks)
-  const [localNodes, setLocalNodes, onNodesChange] = useNodesState([]);
+  const [localNodes, setLocalNodes, onNodesChange] = useNodesState([inputNode]);
   const [localEdges, setLocalEdges, onEdgesChange] = useEdgesState([]);
   const [localFormData, setLocalFormData] = useState<Record<string, string>>({});
-
+  console.log('localNodes', localNodes);
   const { screenToFlowPosition } = useReactFlow();
   const [type, setType] = useDnD();
   const [draggingStepData, setDraggingStepData] = useState<any>(null);
@@ -74,7 +96,6 @@ const CollaborativeFlowCrafter: React.FC = () => {
   const updateFormData = useMutation(({ storage }, newFormData) => {
     storage.set('formData', new LiveObject(newFormData));
   }, []);
-
   // Sync Liveblocks storage to local state
   useEffect(() => {
     if (nodes && Array.isArray(nodes)) {
@@ -152,6 +173,12 @@ const CollaborativeFlowCrafter: React.FC = () => {
     // }
   }, [workflow?.data?.workflow]);
 
+  useEffect(() => {
+    if (encodedParams === 'new') {
+      updateNodes([inputNode]);
+    }
+  }, [encodedParams]);
+
   // useEffect(() => {
   //   if (encodedParams === 'new') {
   //     updateNodes([]);
@@ -167,7 +194,7 @@ const CollaborativeFlowCrafter: React.FC = () => {
   const triggerWarning = () => {
     const now = Date.now();
     if (now - lastWarningRef.current < 3000) {
-      return; 
+      return;
     }
     lastWarningRef.current = now;
     showToast('You are not allowed to edit this workflow', 'warning');
@@ -344,6 +371,7 @@ const CollaborativeFlowCrafter: React.FC = () => {
   }, [updateMyPresence]);
 
   const nodeTypes: any = {
+    inputNode: (e: any) => InputTaker({ ...e, data: e?.data }),
     genericNode: (e: any) => GenericNode({ ...e, data: e?.data, removeStep }),
   };
 
