@@ -1,83 +1,57 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { AlignJustify } from 'lucide-react';
 import { Handle, useNodeId, useReactFlow } from '@xyflow/react';
 import { debounce } from 'lodash';
 
-export const InputTaker: React.FC<any> = (props) => {
-  const { data } = props;
+export const InputTaker: React.FC<any> = ({ data, onPromptChange }) => {
   const nodeId = useNodeId();
   const { setNodes } = useReactFlow();
-  const [text, setText] = useState('');
+  const [text, setText] = useState(data?.text || '');
 
-  // Extract step information from data
-  const stepName = data?.name || 'Text Input';
-  //   const stepPrompt = data?.prompt || 'No prompt available';
+  // keep local state synced with parent when node updates externally
+  useEffect(() => {
+    setText(data?.text || '');
+  }, [data?.text]);
 
-  const handleUpdateNode = useCallback(
-    debounce((text: string) => {
-      setNodes((nds) =>
-        nds.map((node) => {
-          if (node.id === nodeId) {
-            return { ...node, data: { ...node.data, text } };
-          }
-          return node;
-        }),
-      );
-    }),
-    [text],
+  // debounced sync to parent/liveblocks
+  const debouncedSync = useCallback(
+    debounce((newText: string) => {
+      onPromptChange(newText);
+
+      // optional: also update this node's data in ReactFlow directly
+      setNodes((nodes) => nodes.map((node) => (node.id === nodeId ? { ...node, data: { ...node.data, text: newText } } : node)));
+    }, 1000),
+    [nodeId, onPromptChange, setNodes],
   );
 
-  const handleTextChange = (e: any) => {
-    setText(e.target.value);
-    handleUpdateNode(e.target.value);
+  const handleTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const newText = e.target.value;
+    setText(newText); // immediate local update (no focus loss)
+    debouncedSync(newText); // sync with delay
   };
-  console.log(text);
+
   return (
     <div className='border border-gray-300 rounded-lg bg-white shadow-sm min-w-[200px] max-w-[400px] border-l-4 border-l-blue-500'>
-      {/* <Handle type='source' position={'top' as any} id='a' style={{ background: '#6382e8ff' }} /> */}
-      {/* Header */}
       <div className='bg-blue-50 px-2 py-1 border-b border-gray-200 rounded-t-lg'>
-        <div className='flex items-center justify-between'>
-          <h3 className='text-sm font-semibold text-gray-800 truncate'>{stepName}</h3>
-          {/* <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full">
-            {stepCategory}
-          </span> */}
-        </div>
+        <h3 className='text-sm font-semibold text-gray-800 truncate'>{data?.name || 'Text Input'}</h3>
       </div>
-      {/* Content */}
-      <div className='p-2 space-y-3'>
-        {/* Prompt Section */}
-        <div className='space-y-2'>
-          <div className='flex items-center justify-between'>
-            <label className='text-xs font-medium text-gray-700 flex items-center'>
-              <AlignJustify className='w-3 h-3 mr-1 mt-0.5' />
-              Text
-            </label>
-            {/* <button
-              onClick={() => copyToClipboard(stepPrompt)}
-              className="text-xs text-blue-600 hover:text-blue-700 flex items-center"
-            >
-              {copied ? (
-                <Check className="w-3 h-3 mr-1" />
-              ) : (
-                <Copy className="w-3 h-3 mr-1" />
-              )}
-              {copied ? "Copied!" : "Copy"}
-            </button> */}
-          </div>
-          <div className='w-[300px]'>
-            {' '}
-            <textarea
-              value={text}
-              rows={3}
-              onChange={handleTextChange}
-              className='w-[300px] mt-1 block w-full pr-3 py-2 pl-3 border border-gray-300 dark:border-dark-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none focus:border-transparent transition-all duration-200 placeholder-gray-400 dark:placeholder-gray-500 bg-white dark:bg-dark-800 text-gray-900 dark:text-white'
-              placeholder='Enter text'
-            />
-          </div>
-        </div>
+
+      <div className='p-2 space-y-2'>
+        <label className='text-xs font-medium text-gray-700 flex items-center'>
+          <AlignJustify className='w-3 h-3 mr-1 mt-0.5' />
+          Text
+        </label>
+
+        <textarea
+          value={text}
+          rows={3}
+          onChange={handleTextChange}
+          className='w-[300px] mt-1 block w-full pr-3 py-2 pl-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none focus:border-transparent transition-all duration-200 placeholder-gray-400 bg-white text-gray-900'
+          placeholder='Enter text'
+        />
       </div>
-      <Handle type='target' position={'bottom' as any} id='b' style={{ background: '#6382e8ff' }} />
+
+      <Handle type='target' position='bottom' id='b' style={{ background: '#6382e8ff' }} />
     </div>
   );
 };

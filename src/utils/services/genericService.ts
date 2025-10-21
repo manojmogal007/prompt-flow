@@ -88,6 +88,36 @@ const genericService = baseApi.injectEndpoints({
       }),
       invalidatesTags: [{ type: 'contributors' } as any],
     }),
+    getWorkflowRequest: builder.query({
+      query: (getQuery) => ({
+        url: getQuery,
+      }),
+      // providesTags: [{ type: 'workflow' } as any],
+    }),
+    postWorkflowRequest: builder.mutation({
+      query: (body) => ({
+        url: body.path,
+        method: 'POST',
+        body: body?.reqBody,
+      }),
+      // invalidatesTags: [{ type: 'workflow' } as any],
+    }),
+    postWorkflowDeleteRequest: builder.mutation({
+      query: (body) => ({
+        url: body.path,
+        method: 'POST',
+        body: body?.reqBody,
+      }),
+      // invalidatesTags: [{ type: 'workflow' } as any],
+    }),
+    updateWorkflowRequest: builder.mutation({
+      query: (body) => ({
+        url: body.path,
+        method: 'PUT',
+        body: body?.reqBody,
+      }),
+      // invalidatesTags: [{ type: 'workflow' } as any],
+    }),
   }),
 });
 
@@ -104,4 +134,8 @@ export const {
   useGetContributorsRequestQuery,
   usePostContributorsRequestMutation,
   useUpdateContributorsRequestMutation,
+  useGetWorkflowRequestQuery,
+  usePostWorkflowRequestMutation,
+  usePostWorkflowDeleteRequestMutation,
+  useUpdateWorkflowRequestMutation,
 } = genericService;

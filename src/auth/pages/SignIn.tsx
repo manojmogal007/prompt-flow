@@ -26,7 +26,8 @@ export const SignIn: React.FC = () => {
 
   const { isLoading, handleTrigger } = useApiMutation(usePostAuthRequestMutation, '/users/signin', {
     onSuccess: (data: any) => {
-      dispatch(handleAccessToken(data.accessToken));
+      dispatch(handleAccessToken(data?.accessToken));
+      localStorage.setItem('accessToken', data?.accessToken);
       navigate('/prompt-flow/workflows');
     },
     onError: (error) => {

@@ -7,7 +7,7 @@ import { GenericNode } from '../components/nodes/GenericNode';
 import { v4 as uuidv4 } from 'uuid';
 import Header from '../components/Header';
 import { useParams } from 'react-router';
-import { useGetWorkflowsRequestQuery } from '../../../utils/services/genericService';
+import { useGetWorkflowRequestQuery } from '../../../utils/services/genericService';
 import { useApiQuery } from '../../../utils/customHooks/apiHooks';
 import { useAuth } from '../../../auth/useAuth';
 import { decodeNameAndId } from '../../../utils/helperFunctions/HelperFunctions';
@@ -26,6 +26,7 @@ import { LiveList, LiveObject } from '@liveblocks/client';
 import Loader from '../../../utils/helperComponents/Loader';
 import { useToast } from '../../../hooks/useToast';
 import InputTaker from '../components/nodes/InputTaker';
+// import InputTaker from '../components/nodes/InputTaker';
 
 const inputNode = {
   id: 'cb02b245-7d6c-4925-96f2-c30328d972ba',
@@ -79,11 +80,10 @@ const CollaborativeFlowCrafter: React.FC = () => {
   const [localNodes, setLocalNodes, onNodesChange] = useNodesState([inputNode]);
   const [localEdges, setLocalEdges, onEdgesChange] = useEdgesState([]);
   const [localFormData, setLocalFormData] = useState<Record<string, string>>({});
-  console.log('localNodes', localNodes);
+  // console.log('node', nodes);
   const { screenToFlowPosition } = useReactFlow();
   const [type, setType] = useDnD();
   const [draggingStepData, setDraggingStepData] = useState<any>(null);
-
   // Mutations for updating Liveblocks storage
   const updateNodes = useMutation(({ storage }, newNodes) => {
     storage.set('nodes', new LiveList(newNodes));
@@ -96,6 +96,7 @@ const CollaborativeFlowCrafter: React.FC = () => {
   const updateFormData = useMutation(({ storage }, newFormData) => {
     storage.set('formData', new LiveObject(newFormData));
   }, []);
+
   // Sync Liveblocks storage to local state
   useEffect(() => {
     if (nodes && Array.isArray(nodes)) {
@@ -119,7 +120,7 @@ const CollaborativeFlowCrafter: React.FC = () => {
   }, [formData]);
 
   // API data loading
-  const workflow = useApiQuery(useGetWorkflowsRequestQuery, `/workflow/getWorkflowById?workflowId=${workflowId}&userId=${user?.id}`, {
+  const workflow = useApiQuery(useGetWorkflowRequestQuery, `/workflow/getWorkflowById?workflowId=${workflowId}&userId=${user?.id}`, {
     skipQuery: !Boolean(user?.id && encodedParams !== 'new'),
   });
   const userRole = workflow?.data?.userRole || '';
@@ -143,14 +144,20 @@ const CollaborativeFlowCrafter: React.FC = () => {
     };
     // console.log(JSON.stringify(dbStoredJson) !== JSON.stringify(liveJson), others?.length);
     if (JSON.stringify(dbStoredJson) !== JSON.stringify(liveJson) && workflow?.data?.workflow?.workflowJson && others?.length === 0) {
-      const nodesData = workflow?.data?.workflow?.workflowJson?.nodes;
-      const edgesData = workflow?.data?.workflow?.workflowJson?.edges;
+      const nodesData = workflow?.data?.workflow?.workflowJson?.nodes || [];
+      const edgesData = workflow?.data?.workflow?.workflowJson?.edges || [];
       updateNodes(JSON.parse(JSON.stringify(nodesData)));
       updateEdges(JSON.parse(JSON.stringify(edgesData)));
       updateFormData({
         name: workflow?.data?.workflow?.name || '',
         description: workflow?.data?.workflow?.description || '',
       });
+    } else if (!dbStoredJson?.nodes?.length && !dbStoredJson?.edges?.length && others?.length === 0) {
+      updateFormData({
+        name: workflow?.data?.workflow?.name || '',
+        description: workflow?.data?.workflow?.description || '',
+      });
+      // updateNodes(inputNode);
     }
     // if (
     //   workflow?.data?.workflow &&
@@ -338,6 +345,7 @@ const CollaborativeFlowCrafter: React.FC = () => {
       triggerWarning();
       return;
     }
+    // console.log('newFormData', newFormData);
     setLocalFormData(newFormData);
     updateFormData(newFormData);
   };
@@ -370,8 +378,19 @@ const CollaborativeFlowCrafter: React.FC = () => {
     updateMyPresence({ cursor: null });
   }, [updateMyPresence]);
 
+  const updateInputTakerNode = (prompt: any) => {
+    setLocalNodes((nds) =>
+      nds.map((node) => {
+        if (node?.type === 'inputNode') {
+          return { ...node, data: { ...node?.data, prompt } };
+        }
+        return node;
+      }),
+    );
+  };
+
   const nodeTypes: any = {
-    inputNode: (e: any) => InputTaker({ ...e, data: e?.data }),
+    inputNode: (e: any) => InputTaker({ ...e, data: e?.data, onPromptChange: updateInputTakerNode }),
     genericNode: (e: any) => GenericNode({ ...e, data: e?.data, removeStep }),
   };
 
@@ -381,14 +400,14 @@ const CollaborativeFlowCrafter: React.FC = () => {
         <div className='w-[300px] min-h-full'>
           <PromptSteps onDragStart={onDragStart} isOwner={isOwner} />
         </div>
-        <div className='w-full min-h-full'>
+        <div className='w-full min-h-full relative'>
           <div className='dndflow w-full h-full'>
             <Header
               nodes={localNodes}
               edges={localEdges}
               userRole={userRole}
               formData={localFormData}
-              setFormData={handleFormDataChange}
+              handleFormDataChange={handleFormDataChange}
               collaborators={Array.from(others)}
               workflowCreatorId={workflowCreatorId}
             />

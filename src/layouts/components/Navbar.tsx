@@ -1,6 +1,7 @@
-import { LogOut, Sun, Moon } from 'lucide-react';
+// import { LogOut, Sun, Moon } from 'lucide-react';
+import { LogOut } from 'lucide-react';
 import { Tooltip } from '../../utils/helperComponents/Tooltip';
-import { useTheme } from '../../contexts/ThemeContext';
+// import { useTheme } from '../../contexts/ThemeContext';
 import { useAuth } from '../../auth/useAuth';
 import { useNavigate } from 'react-router';
 import { APP_NAME } from '../../config';
@@ -8,13 +9,14 @@ import iconImage from '../../../assets/app_icon.png';
 import IconButton from '../../utils/helperComponents/IconButton';
 
 function Navbar() {
-  const { theme, toggleTheme } = useTheme();
+  // const { theme, toggleTheme } = useTheme();
   const { logout, user } = useAuth();
   const navigate = useNavigate();
 
   const triggerLogout = async () => {
     const res = await logout();
     if (res?.data?.status) {
+      localStorage.removeItem('accessToken');
       navigate('/prompt-flow/auth/signin');
     }
   };
@@ -33,7 +35,7 @@ function Navbar() {
             <span>{`${user?.firstName} ${user?.lastName}`}</span>
           </div>
         )}
-        <button
+        {/* <button
           onClick={toggleTheme}
           className={`relative flex items-center w-10 h-5 rounded-full border transition-colors duration-300 border hover:border-red-400 mt-1 cursor-pointer ${
             theme === 'dark' ? 'bg-gray-800 border-red-400' : 'bg-gray-200 border-gray-400'
@@ -46,7 +48,7 @@ function Navbar() {
           >
             {theme === 'dark' ? <Moon size={14} /> : <Sun size={14} />}
           </span>
-        </button>
+        </button> */}
         <Tooltip text='Logout' position='left'>
           <IconButton Icon={LogOut} triggerClick={triggerLogout} size='md' />
           {/* <button

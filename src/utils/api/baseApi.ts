@@ -21,7 +21,7 @@ const baseQuery = fetchBaseQuery({
   baseUrl: BACKEND_BASE_URL,
   credentials: 'include',
   prepareHeaders: (headers, { getState }) => {
-    const token = (getState() as RootState).auth.accessToken;
+    const token = (getState() as RootState).auth.accessToken || localStorage.getItem('accessToken');
     if (token) headers.set('authorization', `Bearer ${token}`);
     return headers;
   },
@@ -45,9 +45,9 @@ const baseQueryWithReauth: typeof baseQuery = async (args, api, extraOptions) =>
     } else {
       // Refresh failed → log user out
       console.log('executing logout block');
-      api.dispatch({ type: 'auth/logout' });
-      const toLogin = `${window.location.origin}/prompt-flow/auth/signin`;
-      window.location.href = toLogin;
+      // api.dispatch({ type: 'auth/logout' });
+      // const toLogin = `${window.location.origin}/prompt-flow/auth/signin`;
+      // window.location.href = toLogin;
     }
   }
 

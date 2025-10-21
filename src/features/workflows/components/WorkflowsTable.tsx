@@ -112,7 +112,7 @@ export const WorkflowsTable: React.FC<Props> = ({ workflows = [], activeTab, isL
                     <div className='flex items-center space-x-2'>
                       <div className='flex items-center space-x-1'>
                         <div className='w-2 h-2 bg-blue-500 rounded-full'></div>
-                        <span className='text-sm text-gray-900 dark:text-gray-100'>{workflow.workflowJson.nodes.length} steps</span>
+                        <span className='text-sm text-gray-900 dark:text-gray-100'>{workflow?.workflowJson?.nodes?.length} steps</span>
                       </div>
                     </div>
                   </td>

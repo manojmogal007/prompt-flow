@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { useApiMutation } from '../../../utils/customHooks/apiHooks';
-import { usePostWorkflowsRequestMutation, useUpdateWorkflowsRequestMutation } from '../../../utils/services/genericService';
+import { usePostWorkflowRequestMutation, useUpdateWorkflowRequestMutation } from '../../../utils/services/genericService';
 import { useToast } from '../../../hooks/useToast';
 import { useAuth } from '../../../auth/useAuth';
 import InviteContributors from './InviteContributors';
@@ -16,12 +16,12 @@ interface Props {
   edges: any[];
   userRole: string;
   formData: any;
-  setFormData: any;
   collaborators: any[];
   workflowCreatorId: string;
+  handleFormDataChange: any;
 }
 
-export const Header: React.FC<Props> = ({ nodes, edges, userRole, formData, setFormData }) => {
+export const Header: React.FC<Props> = ({ nodes, edges, userRole, formData, handleFormDataChange }) => {
   const { user } = useAuth();
   const { showToast } = useToast();
   const navigate = useNavigate();
@@ -29,7 +29,7 @@ export const Header: React.FC<Props> = ({ nodes, edges, userRole, formData, setF
   const { id: workflowId } = decodeNameAndId(encodedParams);
   const isNewWorkflow = encodedParams === 'new' || false;
   const [open, setOpen] = useState(false);
-  const saveWorkflow = useApiMutation(usePostWorkflowsRequestMutation, '/workflow/createWorkflow', {
+  const saveWorkflow = useApiMutation(usePostWorkflowRequestMutation, '/workflow/createWorkflow', {
     onSuccess: (data: any) => {
       showToast(data?.message, 'success');
       navigate(`/prompt-flow/workflows/${encodeNameAndId(data?.workflow?.name, data?.workflow?._id)}`);
@@ -38,7 +38,7 @@ export const Header: React.FC<Props> = ({ nodes, edges, userRole, formData, setF
       showToast('Something went wrong', 'error');
     },
   });
-  const updateWorkflow = useApiMutation(useUpdateWorkflowsRequestMutation, '/workflow/updateWorkflow', {
+  const updateWorkflow = useApiMutation(useUpdateWorkflowRequestMutation, '/workflow/updateWorkflow', {
     onSuccess: (data: any) => {
       showToast(data?.message, 'success');
     },
@@ -72,7 +72,8 @@ export const Header: React.FC<Props> = ({ nodes, edges, userRole, formData, setF
     if (isNewWorkflow) {
       await saveWorkflow?.handleTrigger(payload);
     } else await updateWorkflow?.handleTrigger(payload);
-    setFormData({});
+
+    // handleFormDataChange({});
     setOpen(false);
   };
 
@@ -81,7 +82,7 @@ export const Header: React.FC<Props> = ({ nodes, edges, userRole, formData, setF
   };
 
   const handleChange = (val: string, key: string) => {
-    setFormData((prev: any) => ({ ...prev, [key]: val }));
+    handleFormDataChange({ ...formData, [key]: val });
   };
 
   const handleSaveOrOpen = () => {
@@ -90,7 +91,7 @@ export const Header: React.FC<Props> = ({ nodes, edges, userRole, formData, setF
   };
 
   return (
-    <div className='flex flex-row items-center justify-between py-2 px-3 space-x-2'>
+    <div className='flex flex-row items-center justify-between py-2 px-3 space-x-2 sticky top-14 z-50 bg-white'>
       <Modal isOpen={open} onClose={handleToggle}>
         <div className='mb-4 text-center'>
           <h3 className='text-xl font-semibold flex items-center justify-center'>{isNewWorkflow ? 'Create' : 'Update'} workflow</h3>
