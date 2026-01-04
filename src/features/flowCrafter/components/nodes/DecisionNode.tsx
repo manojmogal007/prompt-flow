@@ -1,37 +1,37 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { GitBranch, CheckCircle, XCircle, Settings } from 'lucide-react';
 import { Handle } from '@xyflow/react';
 
 export const DecisionNode: React.FC<any> = (props) => {
   const { data } = props;
-  const [selectedCondition, setSelectedCondition] = useState(data?.condition || 'if');
+  // const [selectedCondition, setSelectedCondition] = useState(data?.condition || 'if');
 
   const nodeName = data?.name || 'Decision';
-  const conditions = data?.conditions || [
-    { id: 'if', label: 'If', description: 'Condition is true' },
-    { id: 'else', label: 'Else', description: 'Condition is false' },
-  ];
+  // const conditions = data?.conditions || [
+  //   { id: 'if', label: 'If', description: 'Condition is true' },
+  //   { id: 'else', label: 'Else', description: 'Condition is false' },
+  // ];
 
   return (
     <div className='group relative border border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 shadow-lg hover:shadow-xl transition-all duration-300 min-w-[280px] max-w-[400px] border-l-4 border-l-orange-500 hover:border-l-orange-600'>
       {/* Connection handles */}
       <Handle
         type='source'
-        position='top'
+        position={'top' as any}
         id='a'
         className='!w-3 !h-3 !bg-orange-500 hover:!bg-orange-600 !border-2 !border-white !shadow-lg'
         style={{ background: '#f97316' }}
       />
       <Handle
         type='source'
-        position='right'
+        position={'right' as any}
         id='b'
         className='!w-3 !h-3 !bg-green-500 hover:!bg-green-600 !border-2 !border-white !shadow-lg'
         style={{ background: '#10b981' }}
       />
       <Handle
         type='source'
-        position='left'
+        position={'left' as any}
         id='c'
         className='!w-3 !h-3 !bg-red-500 hover:!bg-red-600 !border-2 !border-white !shadow-lg'
         style={{ background: '#ef4444' }}
@@ -47,7 +47,9 @@ export const DecisionNode: React.FC<any> = (props) => {
             <div className='flex-1 min-w-0'>
               <h3 className='text-sm font-semibold text-orange-800 dark:text-orange-100 truncate'>{nodeName}</h3>
               <div className='flex items-center space-x-2'>
-                <span className='text-xs bg-orange-100 dark:bg-orange-900/50 text-orange-700 dark:text-orange-200 px-2 py-0.5 rounded-full'>Decision</span>
+                <span className='text-xs bg-orange-100 dark:bg-orange-900/50 text-orange-700 dark:text-orange-200 px-2 py-0.5 rounded-full'>
+                  Decision
+                </span>
                 <span className='text-xs text-orange-600 dark:text-orange-300'>Conditional Logic</span>
               </div>
             </div>
@@ -108,6 +110,3 @@ export const DecisionNode: React.FC<any> = (props) => {
 };
 
 export default DecisionNode;
-
-
-

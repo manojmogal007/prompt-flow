@@ -35,7 +35,7 @@ export const InputTaker: React.FC<any> = ({ data, onPromptChange }) => {
       {/* Connection handles */}
       <Handle
         type='target'
-        position='bottom'
+        position={'bottom' as any}
         id='b'
         className='!w-3 !h-3 !bg-emerald-500 hover:!bg-emerald-600 !border-2 !border-white !shadow-lg'
         style={{ background: '#10b981' }}

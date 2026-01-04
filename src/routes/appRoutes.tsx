@@ -1,9 +1,8 @@
-import React from 'react';
 import { FlowCrafter } from '../features/flowCrafter/pages/FlowCrafter';
-import { LocalFlowCrafter } from '../features/flowCrafter/pages/LocalFlowCrafter';
+// import { LocalFlowCrafter } from '../features/flowCrafter/pages/LocalFlowCrafter';
 import { Workflows } from '../features/workflows/pages/Workflows';
 import { PrivateRoute } from '../utils/routeGuard/PrivateRoute';
-const RootCrafter = React.lazy(() => import('../features/flowCrafter/pages/RootCrafter'));
+// const RootCrafter = React.lazy(() => import('../features/flowCrafter/pages/'));
 
 export const appRoutes = {
   path: 'workflows',
@@ -15,9 +14,9 @@ export const appRoutes = {
     },
     {
       path: ':method/:encodedParams',
-      // element: <FlowCrafter />,
+      element: <FlowCrafter />,
       // element: <LocalFlowCrafter />,
-      element: <RootCrafter />,
+      // element: <RootCrafter />,
     },
   ],
 };

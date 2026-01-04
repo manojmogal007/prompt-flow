@@ -57,7 +57,7 @@ const CollaborativeFlowCrafter: React.FC = () => {
   /* -------------------- LOCAL STATE -------------------- */
 
   const [localNodes, setLocalNodes, onNodesChange] = useNodesState([inputNode]);
-  const [localEdges, setLocalEdges, onEdgesChange] = useEdgesState([]);
+  const [localEdges, setLocalEdges, onEdgesChange] = useEdgesState<any>([]);
   const [localFormData, setLocalFormData] = useState({
     name: '',
     description: '',
@@ -164,7 +164,7 @@ const CollaborativeFlowCrafter: React.FC = () => {
         data: { ...draggingStepData },
       };
 
-      setLocalNodes((nds) => [...nds, newNode]);
+      setLocalNodes((nds: any) => [...nds, newNode]);
       setType(null);
     },
     [screenToFlowPosition, type, draggingStepData, restrictEditing],
@@ -268,9 +268,9 @@ const CollaborativeFlowCrafter: React.FC = () => {
 };
 
 export const LocalFlowCrafter: React.FC = () => {
-  const { encodedParams } = useParams();
-  const { id: workflowId } = decodeNameAndId(encodedParams || '');
-  const { user } = useAuth();
+  // const { encodedParams } = useParams();
+  // const { id: workflowId } = decodeNameAndId(encodedParams || '');
+  // const { user } = useAuth();
 
   return <CollaborativeFlowCrafter />;
 };

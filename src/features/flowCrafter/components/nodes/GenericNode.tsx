@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Sparkles, Trash2, Copy, Check, Settings, Play } from 'lucide-react';
+import { Sparkles, Trash2, Copy, Check } from 'lucide-react';
 import { Handle } from '@xyflow/react';
 
 export const GenericNode: React.FC<any> = (props) => {
@@ -10,7 +10,7 @@ export const GenericNode: React.FC<any> = (props) => {
   const stepName = data?.name || 'Unnamed Step';
   const stepPrompt = data?.prompt || 'No prompt available';
   const stepCategory = data?.category || 'General';
-  const isNodeConnected = edges?.some((edge) => edge.target === id || edge.source === id);
+  const isNodeConnected = edges?.some((edge: any) => edge.target === id || edge.source === id);
 
   console.log('data', rest, edges);
 

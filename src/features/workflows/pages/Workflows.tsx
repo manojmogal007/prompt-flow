@@ -131,7 +131,8 @@ export const Workflows: React.FC = () => {
       createdBy: `${user?.firstName} ${user?.lastName}`,
     };
 
-    const res: any = await saveWorkflow?.handleTrigger(payload);
+    // const res: any = await saveWorkflow?.handleTrigger(payload);
+    await saveWorkflow?.handleTrigger(payload);
     setFormData({});
     setOpen(false);
   };

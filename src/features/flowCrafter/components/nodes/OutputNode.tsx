@@ -37,7 +37,7 @@ export const OutputNode: React.FC<any> = (props) => {
       {/* Connection handles */}
       <Handle
         type='source'
-        position='top'
+        position={'top' as any}
         id='a'
         className='!w-3 !h-3 !bg-purple-500 hover:!bg-purple-600 !border-2 !border-white !shadow-lg'
         style={{ background: '#8b5cf6' }}

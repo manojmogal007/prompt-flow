@@ -19,14 +19,14 @@ export const DataProcessingNode: React.FC<any> = (props) => {
       {/* Connection handles */}
       <Handle
         type='source'
-        position='top'
+        position={'top' as any}
         id='a'
         className='!w-3 !h-3 !bg-indigo-500 hover:!bg-indigo-600 !border-2 !border-white !shadow-lg'
         style={{ background: '#6366f1' }}
       />
       <Handle
         type='target'
-        position='bottom'
+        position={'bottom' as any}
         id='b'
         className='!w-3 !h-3 !bg-indigo-500 hover:!bg-indigo-600 !border-2 !border-white !shadow-lg'
         style={{ background: '#6366f1' }}

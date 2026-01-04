@@ -30,7 +30,6 @@ import DataProcessingNode from '../components/nodes/DataProcessingNode';
 import ModernSidebar from '../components/ModernSidebar';
 import ModernHeader from '../components/ModernHeader';
 import { ModernCanvas } from '../components/ModernCanvas';
-import { TestModal } from '../components/TestModal';
 
 const inputNode = {
   id: 'cb02b245-7d6c-4925-96f2-c30328d972ba',
@@ -60,7 +59,6 @@ const CollaborativeFlowCrafter: React.FC = () => {
   const { encodedParams } = useParams();
   const { id: workflowId } = decodeNameAndId(encodedParams || '');
   // const reactFlowWrapper = useRef<HTMLDivElement | null>(null);
-  const wrapperRef = useRef<HTMLDivElement | null>(null);
   const lastWarningRef = useRef<number>(0);
 
   // Liveblocks hooks

@@ -5,20 +5,10 @@ import {
   Trash2,
   Sparkles,
   SquarePen,
-  Plus,
   Search,
-  Filter,
   ChevronDown,
   ChevronRight,
   FileText,
-  GitBranch,
-  Database,
-  Download,
-  Settings,
-  Zap,
-  Play,
-  Pause,
-  BarChart3,
   LibraryBig,
   Cable,
 } from 'lucide-react';
@@ -137,7 +127,8 @@ export const ModernSidebar: React.FC<ModernSidebarProps> = ({ onDragStart, isOwn
   }, {} as any);
 
   const filteredCustomSteps = customSteps.steps.filter(
-    (step) => step.name.toLowerCase().includes(searchTerm.toLowerCase()) || step.prompt.toLowerCase().includes(searchTerm.toLowerCase()),
+    (step: any) =>
+      step.name.toLowerCase().includes(searchTerm.toLowerCase()) || step.prompt.toLowerCase().includes(searchTerm.toLowerCase()),
   );
 
   const filteredTemplates = templateNodes.filter(

@@ -1,16 +1,12 @@
 import { useMemo, useState, type FC } from 'react';
 import { useParams } from 'react-router';
-import { UserPlus, Send, Users, Mail, Shield, Eye, Edit, X, Check, Clock, AlertCircle } from 'lucide-react';
-import IconButton from '../../../utils/helperComponents/IconButton';
+import { UserPlus, Send, Users, Mail, Eye, Edit, X, Check, Clock } from 'lucide-react';
 import { Drawer } from '../../../utils/helperComponents/Drawer';
-import { Input } from '../../../utils/helperComponents/Input';
 import { useApiMutation, useApiQuery } from '../../../utils/customHooks/apiHooks';
 import { useGetContributorsRequestQuery, usePostContributorsRequestMutation } from '../../../utils/services/genericService';
 import { useToast } from '../../../hooks/useToast';
 import { useAuth } from '../../../auth/useAuth';
-import ContributorsTable from './ContributorsTable';
 import { decodeNameAndId } from '../../../utils/helperFunctions/HelperFunctions';
-import Select from '../../../utils/helperComponents/Select';
 
 const InviteContributors: FC = () => {
   const { user } = useAuth();
@@ -42,10 +38,10 @@ const InviteContributors: FC = () => {
     setContributorDetails((prev) => ({ ...prev, [key]: val }));
   };
 
-  const roleConfig = [
-    { label: 'Viewer', value: 'viewer' },
-    { label: 'Editor', value: 'editor' },
-  ];
+  // const roleConfig = [
+  //   { label: 'Viewer', value: 'viewer' },
+  //   { label: 'Editor', value: 'editor' },
+  // ];
   // console.log(contributorDetails);
   const isInviteValid = useMemo(() => {
     return contributorDetails?.email && contributorDetails?.role;
@@ -64,7 +60,6 @@ const InviteContributors: FC = () => {
     if (contributorDetails.email === user?.email) return showToast('Sorry! You cannot send invite to yourself', 'error');
     await handleTrigger(payload);
   };
-  console.log(contributorDetails);
   return (
     <div>
       <button
@@ -123,10 +118,11 @@ const InviteContributors: FC = () => {
                 <div className='grid grid-cols-2 gap-3'>
                   <button
                     onClick={() => handleContributorDetails('viewer', 'role')}
-                    className={`p-4 rounded-xl border-2 transition-all duration-200 ${contributorDetails.role === 'viewer'
+                    className={`p-4 rounded-xl border-2 transition-all duration-200 ${
+                      contributorDetails.role === 'viewer'
                         ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300'
                         : 'border-slate-200 dark:border-dark-700 bg-white dark:bg-dark-900 text-slate-600 dark:text-dark-300 hover:border-slate-300 dark:hover:border-dark-600'
-                      }`}
+                    }`}
                   >
                     <div className='flex items-center space-x-2 mb-2'>
                       <Eye className='w-4 h-4' />
@@ -137,10 +133,11 @@ const InviteContributors: FC = () => {
 
                   <button
                     onClick={() => handleContributorDetails('editor', 'role')}
-                    className={`p-4 rounded-xl border-2 transition-all duration-200 ${contributorDetails.role === 'editor'
+                    className={`p-4 rounded-xl border-2 transition-all duration-200 ${
+                      contributorDetails.role === 'editor'
                         ? 'border-purple-500 bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-300'
                         : 'border-slate-200 dark:border-dark-700 bg-white dark:bg-dark-900 text-slate-600 dark:text-dark-300 hover:border-slate-300 dark:hover:border-dark-600'
-                      }`}
+                    }`}
                   >
                     <div className='flex items-center space-x-2 mb-2'>
                       <Edit className='w-4 h-4' />
@@ -156,10 +153,11 @@ const InviteContributors: FC = () => {
                 <button
                   onClick={sendInvite}
                   disabled={!isInviteValid}
-                  className={`w-full py-3 px-6 rounded-xl font-semibold transition-all duration-200 ${!isInviteValid
+                  className={`w-full py-3 px-6 rounded-xl font-semibold transition-all duration-200 ${
+                    !isInviteValid
                       ? 'bg-slate-100 text-slate-400 cursor-not-allowed'
                       : 'bg-gradient-to-r from-blue-500 to-purple-500 text-white hover:from-blue-600 hover:to-purple-600 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5'
-                    }`}
+                  }`}
                 >
                   <div className='flex items-center justify-center space-x-2'>
                     <Send className='w-4 h-4' />
@@ -176,7 +174,9 @@ const InviteContributors: FC = () => {
               <h3 className='text-lg font-semibold text-slate-800 dark:text-dark-100 flex items-center'>
                 <Users className='w-5 h-5 text-slate-600 dark:text-dark-400 mr-2' />
                 Team Members
-                <span className='ml-2 text-sm bg-slate-100 dark:bg-dark-800 text-slate-600 dark:text-dark-300 px-2 py-1 rounded-full'>{contributors.length}</span>
+                <span className='ml-2 text-sm bg-slate-100 dark:bg-dark-800 text-slate-600 dark:text-dark-300 px-2 py-1 rounded-full'>
+                  {contributors.length}
+                </span>
               </h3>
             </div>
 
@@ -193,7 +193,10 @@ const InviteContributors: FC = () => {
                 </div>
               ) : (
                 contributors.map((contributor: any, index: number) => (
-                  <div key={index} className='bg-white dark:bg-dark-800 border border-slate-200 dark:border-dark-700 rounded-xl p-4 hover:shadow-md transition-all duration-200'>
+                  <div
+                    key={index}
+                    className='bg-white dark:bg-dark-800 border border-slate-200 dark:border-dark-700 rounded-xl p-4 hover:shadow-md transition-all duration-200'
+                  >
                     <div className='flex items-center justify-between'>
                       <div className='flex items-center space-x-3'>
                         <div className='w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center text-white font-medium'>
@@ -203,8 +206,11 @@ const InviteContributors: FC = () => {
                           <p className='font-medium text-slate-800 dark:text-dark-100'>{contributor?.email || contributor?.inviteeEmail}</p>
                           <div className='flex items-center space-x-2'>
                             <span
-                              className={`text-xs px-2 py-1 rounded-full ${contributor.role === 'editor' ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300' : 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300'
-                                }`}
+                              className={`text-xs px-2 py-1 rounded-full ${
+                                contributor.role === 'editor'
+                                  ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300'
+                                  : 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300'
+                              }`}
                             >
                               {contributor.role === 'editor' ? (
                                 <>

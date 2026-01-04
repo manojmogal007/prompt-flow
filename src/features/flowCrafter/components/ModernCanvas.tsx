@@ -1,24 +1,7 @@
 import React, { useRef, useCallback } from 'react';
-import { ReactFlow, addEdge, useNodesState, useEdgesState, Controls, useReactFlow, Background } from '@xyflow/react';
+import { ReactFlow, Controls, Background } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
-import { Handle, useNodeId, useReactFlow as useReactFlowHook } from '@xyflow/react';
-import { v4 as uuidv4 } from 'uuid';
-import {
-  ZoomIn,
-  ZoomOut,
-  RotateCcw,
-  Maximize2,
-  Minimize2,
-  Grid3X3,
-  Layers,
-  GitBranch,
-  Play,
-  Pause,
-  Settings,
-  Eye,
-  EyeOff,
-  Zap,
-} from 'lucide-react';
+import { ZoomIn, ZoomOut, RotateCcw, Maximize2, Minimize2, Grid3X3, Layers, Zap } from 'lucide-react';
 import { type BackgroundVariant } from '@xyflow/react';
 import { Cursor } from './Cursor';
 
@@ -30,12 +13,12 @@ interface ModernCanvasProps {
   onConnect: (connection: any) => void;
   onDrop: (event: React.DragEvent) => void;
   onDragOver: (event: React.DragEvent) => void;
-  onNodeClick: (event: React.MouseEvent, node: any) => void;
-  onPointerMove: (event: React.PointerEvent) => void;
-  onPointerLeave: () => void;
+  onNodeClick?: (event: React.MouseEvent, node: any) => void;
+  onPointerMove?: (event: React.PointerEvent) => void;
+  onPointerLeave?: () => void;
   onCursorMove?: (x: number, y: number) => void;
   nodeTypes: any;
-  collaborators: any[];
+  collaborators: any;
 }
 
 export const ModernCanvas: React.FC<ModernCanvasProps> = ({
@@ -54,7 +37,7 @@ export const ModernCanvas: React.FC<ModernCanvasProps> = ({
   collaborators = [],
 }) => {
   const reactFlowWrapper = useRef<HTMLDivElement | null>(null);
-  const { screenToFlowPosition } = useReactFlow();
+  // const { screenToFlowPosition } = useReactFlow();
   const [showGrid, setShowGrid] = React.useState(true);
   const [showMinimap, setShowMinimap] = React.useState(true);
   const [isFullscreen, setIsFullscreen] = React.useState(false);
@@ -88,17 +71,18 @@ export const ModernCanvas: React.FC<ModernCanvasProps> = ({
           const { left, top } = reactFlowWrapper.current.getBoundingClientRect();
           onCursorMove(Math.round(e.clientX - left), Math.round(e.clientY - top));
         }
-        onPointerMove(e);
+        onPointerMove?.(e);
       }}
       onPointerLeave={(e) => {
         // Only clear cursor if actually leaving the canvas container
         // Check if the related target is outside this element
         if (!reactFlowWrapper.current?.contains(e.relatedTarget as Node)) {
-          onPointerLeave();
+          onPointerLeave?.();
         }
       }}
-      className={`relative w-full h-full bg-gradient-to-br from-slate-50 to-white dark:from-dark-900 dark:to-dark-800 ${isFullscreen ? 'fixed inset-0 z-50' : ''
-        }`}
+      className={`relative w-full h-full bg-gradient-to-br from-slate-50 to-white dark:from-dark-900 dark:to-dark-800 ${
+        isFullscreen ? 'fixed inset-0 z-50' : ''
+      }`}
     >
       {/* Canvas Header */}
       <div className='absolute top-4 left-4 right-4 z-10 flex items-center justify-between'>
@@ -114,14 +98,14 @@ export const ModernCanvas: React.FC<ModernCanvasProps> = ({
             <div className='bg-white/90 dark:bg-dark-800/90 backdrop-blur-sm border border-slate-200 dark:border-dark-700 rounded-lg px-3 py-2 shadow-sm'>
               <div className='flex items-center space-x-2'>
                 <div className='flex -space-x-2'>
-                  {collaborators.slice(0, 3).map((collaborator, index) => (
+                  {collaborators.slice(0, 3).map((collaborator: any, index: number) => (
                     <div
                       key={index}
                       className='w-6 h-6 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full border-2 border-white flex items-center justify-center text-xs text-white font-medium'
                     >
                       {collaborator?.presence?.userName
                         ?.split(' ')
-                        ?.map((word) => word.charAt(0))
+                        ?.map((word: any) => word.charAt(0))
                         .join('') || 'U'}
                     </div>
                   ))}
@@ -143,10 +127,11 @@ export const ModernCanvas: React.FC<ModernCanvasProps> = ({
             <div className='flex items-center divide-x divide-slate-200 dark:divide-dark-700'>
               <button
                 onClick={() => setShowGrid(!showGrid)}
-                className={`p-2 transition-colors ${showGrid
+                className={`p-2 transition-colors ${
+                  showGrid
                     ? 'text-blue-600 bg-blue-50 dark:bg-blue-900/30'
                     : 'text-slate-600 dark:text-dark-400 hover:bg-slate-50 dark:hover:bg-dark-700'
-                  }`}
+                }`}
                 title='Toggle Grid'
               >
                 <Grid3X3 className='w-4 h-4' />
@@ -154,10 +139,11 @@ export const ModernCanvas: React.FC<ModernCanvasProps> = ({
 
               <button
                 onClick={() => setShowMinimap(!showMinimap)}
-                className={`p-2 transition-colors ${showMinimap
+                className={`p-2 transition-colors ${
+                  showMinimap
                     ? 'text-blue-600 bg-blue-50 dark:bg-blue-900/30'
                     : 'text-slate-600 dark:text-dark-400 hover:bg-slate-50 dark:hover:bg-dark-700'
-                  }`}
+                }`}
                 title='Toggle Minimap'
               >
                 <Layers className='w-4 h-4' />
@@ -305,7 +291,7 @@ export const ModernCanvas: React.FC<ModernCanvasProps> = ({
           return colors[connectionId % colors.length];
         };
 
-        return collaborators.map((other) => {
+        return collaborators.map((other: any) => {
           console.log('👤 Collaborator:', other.connectionId, 'has cursor:', other.presence?.cursor, 'info:', other.info);
           if (!other.presence?.cursor) {
             console.log('❌ No cursor for', other.connectionId);

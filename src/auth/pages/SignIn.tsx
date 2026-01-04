@@ -4,24 +4,23 @@ import { useApiMutation } from '../../utils/customHooks/apiHooks';
 import { usePostAuthRequestMutation } from '../../utils/services/authService';
 import { APP_NAME } from '../../config';
 import { useAppDispatch } from '../../store/hooks';
-import { accessTokenConfig, handleAccessToken } from '../authSlice';
+import { handleAccessToken } from '../authSlice';
 import { Link, useNavigate } from 'react-router';
-import { useSelector } from 'react-redux';
 import iconImage from '../../../assets/app_icon.png';
 
 export const SignIn: React.FC = () => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = React.useState(false);
-  const accessToken = useSelector(accessTokenConfig);
-  const [formData, setFormData] = React.useState<{
-    email: string;
-    password: string;
-  }>({ email: 'manojmogal1999@gmail.com', password: 'Manoj@1234' });
+  // const accessToken = useSelector(accessTokenConfig);
   // const [formData, setFormData] = React.useState<{
   //   email: string;
   //   password: string;
-  // }>({ email: '', password: '' });
+  // }>({ email: 'manojmogal1999@gmail.com', password: 'Manoj@1234' });
+  const [formData, setFormData] = React.useState<{
+    email: string;
+    password: string;
+  }>({ email: '', password: '' });
 
   const { isLoading, handleTrigger } = useApiMutation(usePostAuthRequestMutation, '/users/signin', {
     onSuccess: (data: any) => {
