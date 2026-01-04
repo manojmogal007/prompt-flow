@@ -29,11 +29,11 @@ export const ThemeToggle: React.FC<ThemeToggleProps> = ({ size = 'md', showLabel
       className={`
         ${sizeClasses[size]}
         relative overflow-hidden rounded-lg
-        bg-gray-100 dark:bg-gray-800
-        border border-gray-200 dark:border-gray-700
-        hover:bg-gray-200 dark:hover:bg-gray-700
+        bg-gray-100 dark:bg-dark-800
+        border border-gray-200 dark:border-dark-700
+        hover:bg-gray-200 dark:hover:bg-dark-700
         focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2
-        dark:focus:ring-offset-gray-800
+        dark:focus:ring-offset-dark-900
         transition-all duration-200 ease-in-out
         flex items-center justify-center
         group

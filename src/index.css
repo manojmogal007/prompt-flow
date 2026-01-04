@@ -1,4 +1,30 @@
 @import "tailwindcss";
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --color-dark-50: #f8fafc;
+  --color-dark-100: #f1f5f9;
+  --color-dark-200: #e2e8f0;
+  --color-dark-300: #cbd5e1;
+  --color-dark-400: #94a3b8;
+  --color-dark-500: #64748b;
+  --color-dark-600: #475569;
+  --color-dark-700: #334155;
+  --color-dark-800: #1e293b;
+  --color-dark-900: #0f172a;
+
+  --animate-orbit: orbit 1.5s linear infinite;
+
+  @keyframes orbit {
+    0% {
+      transform: rotate(0deg) translateX(40px) rotate(0deg);
+    }
+
+    100% {
+      transform: rotate(360deg) translateX(40px) rotate(-360deg);
+    }
+  }
+}
 
 @layer base {
   * {
@@ -7,7 +33,11 @@
   }
 
   html {
-    /* color-scheme: light dark; */
+    color-scheme: light;
+  }
+
+  html.dark {
+    color-scheme: dark;
   }
 
   body {
@@ -26,6 +56,7 @@ body {
     opacity: 0;
     transform: translateY(20px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -40,6 +71,7 @@ body {
   0% {
     transform: rotate(0deg) translateX(30px) rotate(0deg);
   }
+
   100% {
     transform: rotate(360deg) translateX(30px) rotate(-360deg);
   }
@@ -53,6 +85,7 @@ body {
   from {
     transform: rotate(0deg);
   }
+
   to {
     transform: rotate(360deg);
   }
@@ -63,10 +96,12 @@ body {
 }
 
 @keyframes bounce-slow {
+
   0%,
   100% {
     transform: translateY(0);
   }
+
   50% {
     transform: translateY(-10px);
   }
@@ -77,11 +112,13 @@ body {
 }
 
 @keyframes pulse-slow {
+
   0%,
   100% {
     opacity: 1;
     transform: scale(1);
   }
+
   50% {
     opacity: 0.5;
     transform: scale(1.1);
@@ -97,10 +134,12 @@ body {
     stroke-dasharray: 0 200;
     stroke-dashoffset: 0;
   }
+
   50% {
     stroke-dasharray: 100 200;
     stroke-dashoffset: -50;
   }
+
   100% {
     stroke-dasharray: 200 200;
     stroke-dashoffset: -200;

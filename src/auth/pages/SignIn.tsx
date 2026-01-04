@@ -14,20 +14,19 @@ export const SignIn: React.FC = () => {
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = React.useState(false);
   const accessToken = useSelector(accessTokenConfig);
-  console.log(accessToken);
-  // const [formData, setFormData] = React.useState<{
-  //   email: string;
-  //   password: string;
-  // }>({ email: "manojmogal1999@gmail.com", password: "Manoj@1234" });
   const [formData, setFormData] = React.useState<{
     email: string;
     password: string;
-  }>({ email: '', password: '' });
+  }>({ email: 'manojmogal1999@gmail.com', password: 'Manoj@1234' });
+  // const [formData, setFormData] = React.useState<{
+  //   email: string;
+  //   password: string;
+  // }>({ email: '', password: '' });
 
   const { isLoading, handleTrigger } = useApiMutation(usePostAuthRequestMutation, '/users/signin', {
     onSuccess: (data: any) => {
       dispatch(handleAccessToken(data?.accessToken));
-      localStorage.setItem('accessToken', data?.accessToken);
+      // localStorage.setItem('accessToken', data?.accessToken);
       navigate('/prompt-flow/workflows');
     },
     onError: (error) => {
@@ -67,12 +66,12 @@ export const SignIn: React.FC = () => {
             <div className='space-y-4'>
               {/* Email Field */}
               <div>
-                <label htmlFor='email' className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2'>
+                <label htmlFor='email' className='block text-sm font-medium text-gray-700 dark:text-dark-300 mb-2'>
                   Email address
                 </label>
                 <div className='relative'>
                   <div className='absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none'>
-                    <Mail className='h-5 w-5 text-gray-400 dark:text-gray-500' />
+                    <Mail className='h-5 w-5 text-gray-400 dark:text-dark-500' />
                   </div>
                   <input
                     id='email'
@@ -82,7 +81,7 @@ export const SignIn: React.FC = () => {
                     required
                     value={formData.email}
                     onChange={handleInputChange}
-                    className='block w-full pl-10 pr-3 py-3 border border-gray-300 dark:border-dark-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none focus:border-transparent transition-all duration-200 placeholder-gray-400 dark:placeholder-gray-500 bg-white dark:bg-dark-800 text-gray-900 dark:text-white'
+                    className='block w-full pl-10 pr-3 py-3 border border-gray-300 dark:border-dark-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none focus:border-transparent transition-all duration-200 placeholder-gray-400 dark:placeholder-dark-500 bg-white dark:bg-dark-800 text-gray-900 dark:text-dark-100'
                     placeholder='Your email address'
                   />
                 </div>
@@ -90,12 +89,12 @@ export const SignIn: React.FC = () => {
 
               {/* Password Field */}
               <div>
-                <label htmlFor='password' className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2'>
+                <label htmlFor='password' className='block text-sm font-medium text-gray-700 dark:text-dark-300 mb-2'>
                   Password
                 </label>
                 <div className='relative'>
                   <div className='absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none'>
-                    <Lock className='h-5 w-5 text-gray-400 dark:text-gray-500' />
+                    <Lock className='h-5 w-5 text-gray-400 dark:text-dark-500' />
                   </div>
                   <input
                     id='password'
@@ -105,7 +104,7 @@ export const SignIn: React.FC = () => {
                     required
                     value={formData.password}
                     onChange={handleInputChange}
-                    className='block w-full pl-10 pr-12 py-3 border border-gray-300 dark:border-dark-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none focus:border-transparent transition-all duration-200 placeholder-gray-400 dark:placeholder-gray-500 bg-white dark:bg-dark-800 text-gray-900 dark:text-white'
+                    className='block w-full pl-10 pr-12 py-3 border border-gray-300 dark:border-dark-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none focus:border-transparent transition-all duration-200 placeholder-gray-400 dark:placeholder-dark-500 bg-white dark:bg-dark-800 text-gray-900 dark:text-dark-100'
                     placeholder='Your password'
                   />
                   <button
@@ -114,9 +113,9 @@ export const SignIn: React.FC = () => {
                     onClick={() => setShowPassword(!showPassword)}
                   >
                     {showPassword ? (
-                      <EyeOff className='h-5 w-5 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-400' />
+                      <EyeOff className='h-5 w-5 text-gray-400 dark:text-dark-500 hover:text-gray-600 dark:hover:text-dark-400' />
                     ) : (
-                      <Eye className='h-5 w-5 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-400' />
+                      <Eye className='h-5 w-5 text-gray-400 dark:text-dark-500 hover:text-gray-600 dark:hover:text-dark-400' />
                     )}
                   </button>
                 </div>
@@ -146,7 +145,7 @@ export const SignIn: React.FC = () => {
             </button>
 
             <div className='text-center'>
-              <p>
+              <p className='text-gray-600 dark:text-dark-400'>
                 Don’t have an account?{' '}
                 <Link to='/prompt-flow/auth/signup' className='text-sm text-blue-600 hover:text-blue-500 transition-colors hover:underline'>
                   Sign up

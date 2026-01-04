@@ -1,7 +1,7 @@
 import React from 'react';
-import { Users, UserCheck } from 'lucide-react';
+import { Users, User } from 'lucide-react';
 
-type TabType = 'personal' | 'contributions';
+type TabType = 'personal' | 'community';
 interface Props {
   activeTab: string;
   setActiveTab: (tab: TabType) => void;
@@ -12,12 +12,12 @@ export const TabSwitcher: React.FC<Props> = ({ activeTab, setActiveTab }) => {
     {
       label: 'Personal',
       value: 'personal',
-      icon: Users,
+      icon: User,
     },
     {
-      label: 'Contributions',
-      value: 'contributions',
-      icon: UserCheck,
+      label: 'Community',
+      value: 'community',
+      icon: Users,
     },
   ];
   return (

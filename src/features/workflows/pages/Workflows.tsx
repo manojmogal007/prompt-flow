@@ -34,7 +34,7 @@ const inputNode = {
     height: 112,
   },
 };
-type TabType = 'personal' | 'contributions';
+type TabType = 'personal' | 'community';
 
 export const Workflows: React.FC = () => {
   const { user } = useAuth();
@@ -142,12 +142,12 @@ export const Workflows: React.FC = () => {
       ? ownerWorkflows.isLoading || ownerWorkflows.isFetching
       : contributionWorkflows.isLoading || contributionWorkflows.isFetching;
   return (
-    <div className='w-full bg-white dark:bg-gray-900'>
+    <div className='w-full bg-white dark:bg-dark-900'>
       <Modal isOpen={open} onClose={handleToggle}>
         <div className='mb-4 text-center'>
-          <h3 className='text-xl font-semibold flex items-center justify-center'>Create workflow</h3>
+          <h3 className='text-xl font-semibold flex items-center justify-center dark:text-dark-100'>Create workflow</h3>
         </div>
-        <div className='border-t border-gray-200 mb-2'></div>
+        <div className='border-t border-gray-200 dark:border-dark-700 mb-2'></div>
         <DetailsTaker
           handleClose={handleToggle}
           name={formData.name}
@@ -157,7 +157,7 @@ export const Workflows: React.FC = () => {
           validation={payloadValidation}
         />
       </Modal>
-      <div className='px-6 py-2 border-b border-gray-200 dark:border-gray-700'>
+      <div className='px-6 py-2 border-b border-gray-200 dark:border-dark-700'>
         <div className='flex items-center justify-between'>
           <div className='flex items-center space-x-4'>
             {/* <h1 className='text-xl font-semibold text-gray-900 dark:text-gray-100'>Workflows</h1> */}
@@ -166,8 +166,8 @@ export const Workflows: React.FC = () => {
             </div>
           </div>
           <div className='flex items-center space-x-2'>
+            {activeTab === 'personal' && <Button triggerClick={handleToggle} label={'Create Workflow'} icon={Plus} />}
             <TabSwitcher activeTab={activeTab} setActiveTab={handleTabChange} />
-            <Button triggerClick={handleToggle} label={'Create Workflow'} icon={Plus} />
           </div>
         </div>
       </div>

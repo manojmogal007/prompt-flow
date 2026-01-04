@@ -29,7 +29,7 @@ export const Drawer: React.FC<DrawerProps> = ({ isOpen, onClose, children, posit
           {/* Drawer Panel */}
           <motion.div
             className={`
-              fixed bg-white dark:bg-neutral-900 shadow-xl z-50
+              fixed bg-white dark:bg-dark-900 shadow-xl z-50
               ${position === 'bottom' ? `left-0 right-0 ${size}` : `top-0 h-full ${size}`}
               ${position === 'left' ? 'left-0' : position === 'right' ? 'right-0' : 'bottom-0'}
             `}
@@ -46,15 +46,14 @@ export const Drawer: React.FC<DrawerProps> = ({ isOpen, onClose, children, posit
           >
             {/* Close Button */}
             <div
-              className={`flex justify-between p-3 border-b border-gray-200 dark:border-neutral-700 ${
-                position === 'bottom' ? 'border-b' : 'border-b'
-              }`}
+              className={`flex justify-between p-3 border-b border-gray-200 dark:border-dark-700 ${position === 'bottom' ? 'border-b' : 'border-b'
+                }`}
             >
-              <h3 className='text-xl font-semibold flex items-center justify-center'>
+              <h3 className='text-xl font-semibold flex items-center justify-center text-slate-800 dark:text-dark-100'>
                 {titleIcon && <Icon className='mr-2 w-5 h-5' />}
                 {title}
               </h3>
-              <button onClick={onClose} className='text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white'>
+              <button onClick={onClose} className='text-gray-600 hover:text-gray-900 dark:text-dark-400 dark:hover:text-dark-100'>
                 ✕
               </button>
             </div>

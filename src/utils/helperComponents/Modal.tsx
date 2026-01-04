@@ -1,4 +1,4 @@
-import React, { type ReactNode } from "react";
+import React, { type ReactNode } from 'react';
 
 interface ModalProps {
   isOpen: boolean;
@@ -10,15 +10,12 @@ export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, children }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
+    <div className='fixed inset-0 z-[9999] flex items-center justify-center'>
       {/* Background Overlay */}
-      <div
-        className="absolute inset-0 bg-black/20 z-40"
-        onClick={onClose}
-      ></div>
+      <div className='absolute inset-0 bg-black/50 backdrop-blur-sm' onClick={onClose}></div>
 
       {/* Modal Content */}
-      <div className="relative z-50 bg-white rounded-2xl shadow-lg w-full max-w-md py-4 px-5 animate-fadeIn">
+      <div className='relative z-[10000] bg-white dark:bg-dark-800 rounded-2xl shadow-2xl w-full max-w-md py-4 px-5 border border-slate-200 dark:border-dark-700 transform transition-all duration-300 ease-out animate-in fade-in-0 zoom-in-95'>
         {children}
       </div>
     </div>

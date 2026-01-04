@@ -33,7 +33,7 @@ const baseQueryWithReauth: typeof baseQuery = async (args, api, extraOptions) =>
   if (result.error && result.error.status === 401) {
     // Try to refresh
     const refreshResult = await baseQuery({ url: '/users/refreshToken', method: 'POST' }, api, extraOptions);
-    console.log(refreshResult);
+    console.log('refreshResult', refreshResult);
     if (refreshResult.data) {
       // Store new accessToken in Redux
       const { accessToken } = refreshResult.data as { accessToken: string };
@@ -41,13 +41,12 @@ const baseQueryWithReauth: typeof baseQuery = async (args, api, extraOptions) =>
 
       // Retry original query with new token
       result = await baseQuery(args, api, extraOptions);
-      console.log(result);
-    } else {
+    } else if (refreshResult?.error?.status === 401) {
       // Refresh failed → log user out
       console.log('executing logout block');
-      // api.dispatch({ type: 'auth/logout' });
-      // const toLogin = `${window.location.origin}/prompt-flow/auth/signin`;
-      // window.location.href = toLogin;
+      api.dispatch({ type: 'auth/logout' });
+      const toLogin = `${window.location.origin}/prompt-flow/auth/signin`;
+      window.location.href = toLogin;
     }
   }
 

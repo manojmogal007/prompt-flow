@@ -20,7 +20,7 @@ export const Input: FC<Props> = ({ value, handleInputChange, placeHolder = '', t
       value={value || ''}
       onChange={(e) => handleInputChange(e.target.value, valKey)}
       type={type}
-      className={`block w-full pr-3 ${sizeClasses[size]} pl-3 border border-gray-300 dark:border-dark-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none focus:border-transparent transition-all duration-200 placeholder-gray-400 dark:placeholder-gray-500 bg-white dark:bg-dark-800 text-gray-900 dark:text-white`}
+      className={`block w-full pr-3 ${sizeClasses[size]} pl-3 border border-gray-300 dark:border-dark-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none focus:border-transparent transition-all duration-200 placeholder-gray-400 dark:placeholder-dark-500 bg-white dark:bg-dark-800 text-gray-900 dark:text-dark-100`}
       placeholder={placeHolder}
     />
   );

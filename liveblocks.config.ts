@@ -10,6 +10,7 @@ declare global {
       cursor: { x: number; y: number } | null;
       selectedNodeId: string | null;
       isTyping: boolean;
+      userName: string | null;
     };
 
     // The Storage tree for the room, for useMutation, useStorage, etc.
@@ -56,4 +57,4 @@ declare global {
   }
 }
 
-export {};
+export { };

@@ -1,11 +1,9 @@
-import PromptSteps from '../components/PromptSteps';
 import React, { useRef, useCallback, useState, useEffect } from 'react';
-import { ReactFlow, addEdge, useNodesState, useEdgesState, Controls, useReactFlow, Background } from '@xyflow/react';
+import { addEdge, useNodesState, useEdgesState, useReactFlow } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { useDnD } from '../context/DnDContext';
 import { GenericNode } from '../components/nodes/GenericNode';
 import { v4 as uuidv4 } from 'uuid';
-import Header from '../components/Header';
 import { useParams } from 'react-router';
 import { useGetWorkflowRequestQuery } from '../../../utils/services/genericService';
 import { useApiQuery } from '../../../utils/customHooks/apiHooks';
@@ -26,7 +24,13 @@ import { LiveList, LiveObject } from '@liveblocks/client';
 import Loader from '../../../utils/helperComponents/Loader';
 import { useToast } from '../../../hooks/useToast';
 import InputTaker from '../components/nodes/InputTaker';
-// import InputTaker from '../components/nodes/InputTaker';
+import OutputNode from '../components/nodes/OutputNode';
+import DecisionNode from '../components/nodes/DecisionNode';
+import DataProcessingNode from '../components/nodes/DataProcessingNode';
+import ModernSidebar from '../components/ModernSidebar';
+import ModernHeader from '../components/ModernHeader';
+import { ModernCanvas } from '../components/ModernCanvas';
+import { TestModal } from '../components/TestModal';
 
 const inputNode = {
   id: 'cb02b245-7d6c-4925-96f2-c30328d972ba',
@@ -55,15 +59,25 @@ const CollaborativeFlowCrafter: React.FC = () => {
   const { showToast } = useToast();
   const { encodedParams } = useParams();
   const { id: workflowId } = decodeNameAndId(encodedParams || '');
-  const reactFlowWrapper = useRef<HTMLDivElement | null>(null);
+  // const reactFlowWrapper = useRef<HTMLDivElement | null>(null);
+  const wrapperRef = useRef<HTMLDivElement | null>(null);
   const lastWarningRef = useRef<number>(0);
 
   // Liveblocks hooks
   const nodes = useStorage((root) => root.nodes);
   const edges = useStorage((root) => root.edges);
   const formData: any = useStorage((root) => root.formData);
-  const [, updateMyPresence] = useMyPresence();
+  const [myPresence, updateMyPresence] = useMyPresence();
   const others = useOthers();
+
+  // Debug logging
+  console.log('user', user);
+  console.log('🏛️ Room ID:', workflowId || 'new-workflow');
+  console.log('🔍 My presence:', myPresence);
+  console.log(
+    '🔍 Others:',
+    others.map((o) => ({ id: o.connectionId, cursor: o.presence?.cursor })),
+  );
   // console.log('Collaborators:', others);
   // console.log('Number of collaborators:', others.length);
   // console.log(
@@ -329,16 +343,19 @@ const CollaborativeFlowCrafter: React.FC = () => {
     event.dataTransfer.effectAllowed = 'move';
   };
 
-  const removeStep = (stepId: string) => {
-    if (restrictEditing) {
-      triggerWarning();
-      return;
-    }
-    const newNodes = localNodes.filter((n: any) => n.id !== stepId);
-    setLocalNodes(newNodes);
-    updateNodes(newNodes);
-    broadcast({ type: 'NODE_DELETED', nodeId: stepId });
-  };
+  const removeStep = useCallback(
+    (stepId: string) => {
+      if (restrictEditing) {
+        triggerWarning();
+        return;
+      }
+      const newNodes = localNodes.filter((n: any) => n.id !== stepId);
+      setLocalNodes(newNodes);
+      updateNodes(newNodes);
+      broadcast({ type: 'NODE_DELETED', nodeId: stepId });
+    },
+    [restrictEditing, localNodes, updateNodes, broadcast],
+  );
 
   const handleFormDataChange = (newFormData: Record<string, string>) => {
     if (restrictEditing) {
@@ -360,83 +377,129 @@ const CollaborativeFlowCrafter: React.FC = () => {
     broadcast({ type: 'NODE_SELECTED', nodeId: node.id });
   };
 
-  // Handle mouse movement for cursor presence
-  const handleMouseMove = useCallback(
-    (event: React.MouseEvent) => {
-      updateMyPresence({
-        cursor: {
-          x: event.clientX,
-          y: event.clientY,
-        },
+  const updateInputTakerNode = useCallback(
+    (id: string, text: string) => {
+      setLocalNodes((nds) => {
+        const newNodes = nds.map((node) => {
+          if (node.id === id) {
+            return { ...node, data: { ...node.data, text } };
+          }
+          return node;
+        });
+        updateNodes(newNodes);
+        return newNodes;
       });
     },
-    [updateMyPresence],
+    [updateNodes],
   );
 
-  // Clear cursor when mouse leaves
-  const handleMouseLeave = useCallback(() => {
+  // Create stable wrapper components to prevent re-creation and focus loss
+  const InputTakerWrapper = useCallback(
+    (props: any) => {
+      return (
+        <InputTaker
+          {...props}
+          data={props.data}
+          onPromptChange={(text: string) => updateInputTakerNode(props.id, text)}
+        />
+      );
+    },
+    [updateInputTakerNode],
+  );
+
+  const GenericNodeWrapper = useCallback(
+    (props: any) => {
+      return <GenericNode {...props} data={props.data} removeStep={removeStep} edges={localEdges} />;
+    },
+    [removeStep, localEdges],
+  );
+
+  const OutputNodeWrapper = useCallback((props: any) => {
+    return <OutputNode {...props} data={props.data} />;
+  }, []);
+
+  const DecisionNodeWrapper = useCallback((props: any) => {
+    return <DecisionNode {...props} data={props.data} />;
+  }, []);
+
+  const DataProcessingNodeWrapper = useCallback((props: any) => {
+    return <DataProcessingNode {...props} data={props.data} />;
+  }, []);
+
+  const nodeTypes: any = {
+    inputNode: InputTakerWrapper,
+    genericNode: GenericNodeWrapper,
+    outputNode: OutputNodeWrapper,
+    decisionNode: DecisionNodeWrapper,
+    dataProcessingNode: DataProcessingNodeWrapper,
+  };
+
+  // Cursor tracking with throttling
+  const lastCursorUpdate = useRef<number>(0);
+  const handleCursorMove = (x: number, y: number) => {
+    const now = Date.now();
+    // Throttle to max 20 updates per second (every 50ms)
+    if (now - lastCursorUpdate.current < 50) {
+      return;
+    }
+    lastCursorUpdate.current = now;
+
+    console.log('📡 Broadcasting cursor to Liveblocks:', { x, y });
+    const userName = user?.firstName && user?.lastName ? `${user.firstName} ${user.lastName}` : user?.email || 'Anonymous';
+    updateMyPresence({
+      cursor: { x, y },
+      userName: userName,
+    });
+    console.log('✅ updateMyPresence called with userName:', userName);
+  };
+
+  const handlePointerLeave = useCallback(() => {
+    console.log('🚪 Pointer left canvas - clearing cursor');
     updateMyPresence({ cursor: null });
   }, [updateMyPresence]);
 
-  const updateInputTakerNode = (prompt: any) => {
-    setLocalNodes((nds) =>
-      nds.map((node) => {
-        if (node?.type === 'inputNode') {
-          return { ...node, data: { ...node?.data, prompt } };
-        }
-        return node;
-      }),
-    );
-  };
-
-  const nodeTypes: any = {
-    inputNode: (e: any) => InputTaker({ ...e, data: e?.data, onPromptChange: updateInputTakerNode }),
-    genericNode: (e: any) => GenericNode({ ...e, data: e?.data, removeStep }),
-  };
-
   return (
-    <div className='w-full min-h-full'>
-      <div className='w-full min-h-full flex gap-2'>
-        <div className='w-[300px] min-h-full'>
-          <PromptSteps onDragStart={onDragStart} isOwner={isOwner} />
+    <div className='w-full h-screen bg-slate-50 dark:bg-dark-900 flex flex-col'>
+      {/* Modern Header */}
+      <ModernHeader
+        nodes={localNodes}
+        edges={localEdges}
+        userRole={userRole}
+        formData={localFormData}
+        handleFormDataChange={handleFormDataChange}
+        collaborators={others}
+        workflowCreatorId={workflowCreatorId}
+      />
+
+      {/* Main Content Area */}
+      <div className='flex-1 flex overflow-hidden'>
+        {/* Modern Sidebar */}
+        <div className='w-80 flex-shrink-0'>
+          <ModernSidebar onDragStart={onDragStart} isOwner={isOwner} />
         </div>
-        <div className='w-full min-h-full relative'>
-          <div className='dndflow w-full h-full'>
-            <Header
-              nodes={localNodes}
-              edges={localEdges}
-              userRole={userRole}
-              formData={localFormData}
-              handleFormDataChange={handleFormDataChange}
-              collaborators={Array.from(others)}
-              workflowCreatorId={workflowCreatorId}
-            />
-            <div
-              className='reactflow-wrapper w-full h-full'
-              ref={reactFlowWrapper}
-              onMouseMove={handleMouseMove}
-              onMouseLeave={handleMouseLeave}
-            >
-              <ReactFlow
-                nodes={localNodes}
-                edges={localEdges}
-                onNodesChange={handleNodesChange}
-                onEdgesChange={handleEdgesChange}
-                onConnect={onConnect}
-                onDrop={onDrop}
-                onDragOver={onDragOver}
-                onNodeClick={handleNodeClick}
-                nodeTypes={nodeTypes}
-                fitView
-                proOptions={{ hideAttribution: true }}
-              >
-                <Controls />
-                <Background />
-              </ReactFlow>
-            </div>
-          </div>
+
+        {/* Modern Canvas */}
+        <div className='flex-1 relative'>
+          <ModernCanvas
+            nodes={localNodes}
+            edges={localEdges}
+            onNodesChange={handleNodesChange}
+            onEdgesChange={handleEdgesChange}
+            onConnect={onConnect}
+            onDrop={onDrop}
+            onDragOver={onDragOver}
+            onNodeClick={handleNodeClick}
+            onPointerMove={() => { }}
+            onPointerLeave={handlePointerLeave}
+            onCursorMove={handleCursorMove}
+            nodeTypes={nodeTypes}
+            collaborators={others}
+          />
         </div>
       </div>
+
+      {/* Test Modal for debugging */}
+      {/* <TestModal /> */}
     </div>
   );
 };
@@ -445,29 +508,40 @@ const CollaborativeFlowCrafter: React.FC = () => {
 export const FlowCrafter: React.FC = () => {
   const { encodedParams } = useParams();
   const { id: workflowId } = decodeNameAndId(encodedParams || '');
-  // const { user } = useAuth();
 
-  // if (encodedParams === 'new') {
-  //   return (
-  //     <div className='w-full h-full'>
-  //       <CollaborativeFlowCrafter />
-  //     </div>
-  //   );
-  // }
+  const { user } = useAuth();
 
   return (
     <LiveblocksProvider
       publicApiKey={LIVEBLOCK_API_KEY}
       resolveUsers={async ({ userIds }) => {
-        // Return user info for the given user IDs
-        return userIds.map((userId) => ({
-          id: userId,
-          info: {
-            name: `User ${userId.slice(-4)}`,
-            email: `${userId}@example.com`,
-            role: 'collaborator',
-          },
-        }));
+        console.log('👥 Resolving users:', userIds, 'Current user:', user);
+        // Return user info - in production, fetch from your API
+        const resolved = userIds.map((userId) => {
+          // If this is the current user, use their actual info
+          if (user && userId === user.id) {
+            const fullName = user.firstName && user.lastName ? `${user.firstName} ${user.lastName}` : user.email || 'You';
+            return {
+              id: userId,
+              info: {
+                name: fullName,
+                email: user.email || '',
+                role: 'collaborator',
+              },
+            };
+          }
+          // For other users, use generic name (in production, fetch from API)
+          return {
+            id: userId,
+            info: {
+              name: `User ${userId.slice(-4)}`,
+              email: `${userId}@example.com`,
+              role: 'collaborator',
+            },
+          };
+        });
+        console.log('👥 Resolved users:', resolved);
+        return resolved;
       }}
     >
       <RoomProvider
@@ -476,6 +550,7 @@ export const FlowCrafter: React.FC = () => {
           cursor: null,
           selectedNodeId: null,
           isTyping: false,
+          userName: user?.firstName && user?.lastName ? `${user.firstName} ${user.lastName}` : user?.email || null,
         }}
         initialStorage={{
           nodes: new LiveList<any>([]),
