@@ -1,17 +1,13 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { Outlet } from 'react-router';
-import { useApiQuery } from '../utils/customHooks/apiHooks';
-import { useGetAuthRequestQuery } from '../utils/services/authService';
-import { useAuth } from '../auth/useAuth';
 import Navbar from './components/Navbar';
+import AccessBlocked from './components/AccessBlocked';
+import { useSettings } from '../hooks/useSettings';
 
 export const MainLayout: React.FC = () => {
-  const { handleUser } = useAuth();
-  const userDetails = useApiQuery(useGetAuthRequestQuery, '/users/getUser', {});
-  useEffect(() => {
-    if (userDetails?.data?.user) handleUser(userDetails.data.user);
-  }, [userDetails.data]);
+  const { isBlocked } = useSettings();
 
+  if (isBlocked) return <AccessBlocked />;
   return (
     <div className='min-h-screen bg-white dark:bg-dark-900 relative'>
       <Navbar />

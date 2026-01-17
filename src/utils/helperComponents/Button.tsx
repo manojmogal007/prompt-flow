@@ -1,8 +1,11 @@
-import  { type FC } from 'react';
+import { type FC } from 'react';
+import { motion } from 'framer-motion';
+import { Loader2 } from 'lucide-react';
 
 interface Props {
   triggerClick: () => void;
   disabled?: boolean;
+  loading?: boolean;
   label: string;
   icon?: any;
   size?: 'sm' | 'md' | 'lg';
@@ -10,54 +13,83 @@ interface Props {
   isHollow?: boolean;
   color?: string;
 }
-const colors: Record<string, string> = {
-  blue: 'bg-blue-600 text-white hover:bg-blue-700 border-blue-600',
-  red: 'bg-red-600 text-white hover:bg-red-700 border-red-600',
-  green: 'bg-green-600 text-white hover:bg-green-700 border-green-600',
-  yellow: 'bg-yellow-500 text-black hover:bg-yellow-600 border-yellow-500',
-  purple: 'bg-purple-600 text-white hover:bg-purple-700 border-purple-600',
-  pink: 'bg-pink-600 text-white hover:bg-pink-700 border-pink-600',
-  indigo: 'bg-indigo-600 text-white hover:bg-indigo-700 border-indigo-600',
-  gray: 'bg-gray-600 text-white hover:bg-gray-700 border-gray-600',
-  teal: 'bg-teal-600 text-white hover:bg-teal-700 border-teal-600',
-  orange: 'bg-orange-600 text-white hover:bg-orange-700 border-orange-600',
+
+const colors: Record<string, { solid: string; hollow: string }> = {
+  blue: {
+    solid: 'bg-blue-600 hover:bg-blue-700 text-white shadow-blue-500/20',
+    hollow: 'text-blue-600 border-blue-200 hover:bg-blue-50 dark:border-blue-800 dark:hover:bg-blue-900/30'
+  },
+  red: {
+    solid: 'bg-red-600 hover:bg-red-700 text-white shadow-red-500/20',
+    hollow: 'text-red-600 border-red-200 hover:bg-red-50 dark:border-red-800 dark:hover:bg-red-900/30'
+  },
+  green: {
+    solid: 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-500/20',
+    hollow: 'text-emerald-600 border-emerald-200 hover:bg-emerald-50 dark:border-emerald-800 dark:hover:bg-emerald-900/30'
+  },
+  gray: {
+    solid: 'bg-gray-800 hover:bg-gray-900 text-white shadow-gray-500/20 dark:bg-white dark:text-gray-900 dark:hover:bg-gray-100',
+    hollow: 'text-gray-600 border-gray-200 hover:bg-gray-50 dark:text-gray-300 dark:border-gray-700 dark:hover:bg-gray-800'
+  },
+  indigo: {
+    solid: 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-indigo-500/20',
+    hollow: 'text-indigo-600 border-indigo-200 hover:bg-indigo-50 dark:border-indigo-800 dark:hover:bg-indigo-900/30'
+  },
+  purple: {
+    solid: 'bg-purple-600 hover:bg-purple-700 text-white shadow-purple-500/20',
+    hollow: 'text-purple-600 border-purple-200 hover:bg-purple-50 dark:border-purple-800 dark:hover:bg-purple-900/30'
+  }
 };
 
-const hollowColors: Record<string, string> = {
-  blue: 'text-blue-600 border-blue-600',
-  red: 'text-red-600 border-red-600',
-  green: 'text-green-600 border-green-600',
-  yellow: 'text-yellow-500 border-yellow-500',
-  purple: 'text-purple-600 border-purple-600',
-  pink: 'text-pink-600 border-pink-600',
-  indigo: 'text-indigo-600 border-indigo-600',
-  gray: 'text-gray-600 border-gray-600',
-  teal: 'text-teal-600 border-teal-600',
-  orange: 'text-orange-600 border-orange-600',
-};
+const Button: FC<Props> = ({
+  triggerClick,
+  label,
+  disabled,
+  loading,
+  icon: Icon,
+  size = 'md',
+  extraClasses = '',
+  isHollow,
+  color = 'blue'
+}) => {
 
-const Button: FC<Props> = ({ triggerClick, label, disabled, icon, size = 'md', extraClasses = '', isHollow, color = 'blue' }) => {
-  const Icon = icon;
+  const themeByColor = colors[color] || colors.blue;
+  const variantClass = isHollow ? `border ${themeByColor.hollow}` : `${themeByColor.solid} shadow-lg shadow-sm border border-transparent`;
+
   const sizeClasses = {
-    sm: 'h-6 px-2 text-[12px]',
-    md: 'h-8 px-4 text-[14px]',
-    lg: 'h-10 px-6 text-[16px]',
+    sm: 'h-8 px-3 text-xs',
+    md: 'h-10 px-5 text-sm',
+    lg: 'h-12 px-7 text-base',
   };
+
   const iconSizes = {
-    sm: 'w-3 h-3',
+    sm: 'w-3.5 h-3.5',
     md: 'w-4 h-4',
     lg: 'w-5 h-5',
   };
-  const hollowClasses = isHollow ? `bg-transparent ${hollowColors[color]}` : colors[color];
+
   return (
-    <button
-      disabled={disabled}
+    <motion.button
+      whileHover={!disabled && !loading ? { scale: 1.02, y: -1 } : {}}
+      whileTap={!disabled && !loading ? { scale: 0.98 } : {}}
+      disabled={disabled || loading}
       onClick={triggerClick}
-      className={`flex items-center border rounded-lg font-semibold cursor-pointer disabled:cursor-not-allowed ${hollowClasses} ${sizeClasses[size]} ${extraClasses}`}
+      className={`
+        relative flex items-center justify-center font-semibold rounded-xl transition-all duration-200
+        ${variantClass} 
+        ${sizeClasses[size]} 
+        ${extraClasses}
+        disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none
+      `}
     >
-      {icon && <Icon className={`mr-2 ${iconSizes[size]}`} />}
+      {loading ? (
+        <Loader2 className={`animate-spin mr-2 ${iconSizes[size]}`} />
+      ) : Icon ? (
+        <Icon className={`mr-2 ${iconSizes[size]}`} />
+      ) : null}
+
       {label}
-    </button>
+    </motion.button>
   );
 };
 

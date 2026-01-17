@@ -17,19 +17,17 @@ export const Drawer: React.FC<DrawerProps> = ({ isOpen, onClose, children, posit
     <AnimatePresence>
       {isOpen && (
         <>
-          {/* Overlay */}
           <motion.div
-            className='fixed inset-0 bg-black/40 z-40'
+            className='fixed inset-0 bg-black/40 z-[90]'
             onClick={onClose}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
           />
 
-          {/* Drawer Panel */}
           <motion.div
             className={`
-              fixed bg-white dark:bg-dark-900 shadow-xl z-50
+              fixed bg-white dark:bg-dark-900 shadow-xl z-[100]
               ${position === 'bottom' ? `left-0 right-0 ${size}` : `top-0 h-full ${size}`}
               ${position === 'left' ? 'left-0' : position === 'right' ? 'right-0' : 'bottom-0'}
             `}
@@ -44,7 +42,6 @@ export const Drawer: React.FC<DrawerProps> = ({ isOpen, onClose, children, posit
             }}
             transition={{ type: 'tween', duration: 0.3 }}
           >
-            {/* Close Button */}
             <div
               className={`flex justify-between p-3 border-b border-gray-200 dark:border-dark-700 ${position === 'bottom' ? 'border-b' : 'border-b'
                 }`}
@@ -58,8 +55,7 @@ export const Drawer: React.FC<DrawerProps> = ({ isOpen, onClose, children, posit
               </button>
             </div>
 
-            {/* Drawer Content */}
-            <div className='p-4 overflow-y-auto h-[calc(100%-3rem)] z-50'>{children}</div>
+            <div className='p-4 overflow-y-auto h-[calc(100%-3rem)] z-[100]'>{children}</div>
           </motion.div>
         </>
       )}

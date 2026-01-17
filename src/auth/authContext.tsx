@@ -13,7 +13,6 @@ export const AuthContext = React.createContext<AuthContextType | null>(null);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const dispatch = useAppDispatch();
-  // const navigate = useNavigate();
   const [user, setUser] = useState<Record<string, any>>({});
 
   const { handleTrigger } = useApiMutation(usePostAuthRequestMutation, '/users/signout', {
@@ -25,12 +24,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     },
   });
 
+  // const { handleTrigger: updateSettings, isLoading: isUpdating } = useApiMutation(
+  //   useUpdateSettingsRequestMutation,
+  //   `/settings/updateSettings?userId=${user?.id}`,
+  // );
+
   const handleUser = (user: any) => setUser({ ...user, id: user._id });
   const logout = async () => {
     const res = await handleTrigger({});
     setUser({});
     return res;
   };
+
   const authConfig = { user, handleUser, logout };
   return <AuthContext.Provider value={authConfig}>{children}</AuthContext.Provider>;
 };

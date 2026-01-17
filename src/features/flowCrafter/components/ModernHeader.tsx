@@ -6,18 +6,7 @@ import { useAuth } from '../../../auth/useAuth';
 import InviteContributors from './InviteContributors';
 import { useNavigate, useParams } from 'react-router';
 import { decodeNameAndId, encodeNameAndId } from '../../../utils/helperFunctions/HelperFunctions';
-import {
-  SaveAll,
-  ArrowLeftFromLine,
-  SquarePen,
-  Play,
-  Pause,
-  Users,
-  Eye,
-  EyeOff,
-  Zap,
-  Workflow,
-} from 'lucide-react';
+import { SaveAll, ArrowLeftFromLine, SquarePen, Play, Clock, Users, Zap, Workflow, Loader2 } from 'lucide-react';
 import { Modal } from '../../../utils/helperComponents/Modal';
 import DetailsTaker from './DetailsTaker';
 
@@ -27,8 +16,10 @@ interface ModernHeaderProps {
   userRole: string;
   formData: any;
   collaborators: any;
-  workflowCreatorId: string;
   handleFormDataChange: any;
+  onExecute?: () => void;
+  onHistory?: () => void;
+  isExecuting?: boolean;
 }
 
 export const ModernHeader: React.FC<ModernHeaderProps> = ({
@@ -38,6 +29,9 @@ export const ModernHeader: React.FC<ModernHeaderProps> = ({
   formData,
   handleFormDataChange,
   collaborators = [],
+  onExecute,
+  onHistory,
+  isExecuting,
 }) => {
   const { user } = useAuth();
   const { showToast } = useToast();
@@ -46,8 +40,6 @@ export const ModernHeader: React.FC<ModernHeaderProps> = ({
   const { id: workflowId } = decodeNameAndId(encodedParams);
   const isNewWorkflow = encodedParams === 'new' || false;
   const [open, setOpen] = useState(false);
-  const [isRunning, setIsRunning] = useState(false);
-  const [showPreview, setShowPreview] = useState(false);
 
   const saveWorkflow = useApiMutation(usePostWorkflowRequestMutation, '/workflow/createWorkflow', {
     onSuccess: (data: any) => {
@@ -111,13 +103,12 @@ export const ModernHeader: React.FC<ModernHeaderProps> = ({
     else triggerSaveWorkflow();
   };
 
-  const toggleRun = () => {
-    setIsRunning(!isRunning);
-    if (!isRunning) {
-      showToast('Workflow execution started', 'success');
-    } else {
-      showToast('Workflow execution stopped', 'info');
+  const handleExecute = () => {
+    if (nodes.length < 2) {
+      showToast('Workflow must have at least 2 nodes to execute', 'warning');
+      return;
     }
+    onExecute?.();
   };
 
   // const exportWorkflow = () => {
@@ -173,10 +164,9 @@ export const ModernHeader: React.FC<ModernHeaderProps> = ({
   // };
 
   return (
-    <div className='bg-white dark:bg-dark-900 border-b border-slate-200 dark:border-dark-700 shadow-sm'>
+    <div className='bg-white dark:bg-dark-900 border-b border-slate-200 dark:border-dark-700 shadow-sm sticky top-16 z-40'>
       <div className='px-6 py-4'>
         <div className='flex items-center justify-between'>
-          {/* Left Section - Workflow Info */}
           <div className='flex items-center space-x-4'>
             <div className='flex items-center space-x-3'>
               <div className='p-2 bg-gradient-to-r from-blue-500 to-purple-500 rounded-lg'>
@@ -198,13 +188,13 @@ export const ModernHeader: React.FC<ModernHeaderProps> = ({
             {/* Status Indicators */}
             <div className='flex items-center space-x-4'>
               <div className='flex items-center space-x-2'>
-                <div className={`w-2 h-2 rounded-full ${isRunning ? 'bg-green-500 animate-pulse' : 'bg-slate-400'}`}></div>
-                <span className='text-sm text-slate-600 dark:text-gray-300'>{isRunning ? 'Running' : 'Stopped'}</span>
+                <div className='w-2 h-2 bg-blue-500 rounded-full'></div>
+                <span className='text-sm text-slate-600 dark:text-dark-300'>{nodes.length} nodes</span>
               </div>
 
               <div className='flex items-center space-x-2'>
-                <div className='w-2 h-2 bg-blue-500 rounded-full'></div>
-                <span className='text-sm text-slate-600 dark:text-dark-300'>{nodes.length} nodes</span>
+                <div className='w-2 h-2 bg-purple-500 rounded-full'></div>
+                <span className='text-sm text-slate-600 dark:text-dark-300'>{edges.length} connections</span>
               </div>
 
               {collaborators.length > 0 && (
@@ -219,7 +209,7 @@ export const ModernHeader: React.FC<ModernHeaderProps> = ({
           {/* Right Section - Actions */}
           <div className='flex items-center space-x-3'>
             {/* Preview Toggle */}
-            <button
+            {/* <button
               onClick={() => setShowPreview(!showPreview)}
               className={`flex items-center space-x-2 px-3 py-2 rounded-lg transition-colors ${
                 showPreview
@@ -229,26 +219,35 @@ export const ModernHeader: React.FC<ModernHeaderProps> = ({
             >
               {showPreview ? <EyeOff className='w-4 h-4' /> : <Eye className='w-4 h-4' />}
               <span className='text-sm font-medium'>Preview</span>
+            </button> */}
+
+            {/* History Button */}
+            <button
+              onClick={() => onHistory?.()}
+              className='flex items-center space-x-2 px-3 py-1.5 bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-dark-800 dark:text-dark-300 dark:hover:bg-dark-700 rounded-lg font-medium transition-colors'
+            >
+              <Clock className='w-4 h-4' />
+              <span>History</span>
             </button>
 
-            {/* Run/Stop Button */}
+            {/* Execute Button */}
             <button
-              onClick={toggleRun}
-              className={`flex items-center space-x-2 px-4 py-1.5 rounded-lg font-medium transition-colors ${
-                isRunning
-                  ? 'bg-red-100 text-red-700 hover:bg-red-200 border border-red-200'
-                  : 'bg-green-100 text-green-700 hover:bg-green-200 border border-green-200'
-              }`}
+              onClick={handleExecute}
+              disabled={nodes.length < 2 || isExecuting}
+              className={`flex items-center space-x-2 px-4 py-1.5 rounded-lg font-medium transition-colors ${nodes.length < 2 || isExecuting
+                ? 'bg-slate-100 text-slate-400 cursor-not-allowed dark:bg-dark-800 dark:text-dark-500'
+                : 'bg-gradient-to-r from-green-500 to-emerald-600 text-white hover:from-green-600 hover:to-emerald-700 shadow-md hover:shadow-lg'
+                }`}
             >
-              {isRunning ? (
+              {isExecuting ? (
                 <>
-                  <Pause className='w-4 h-4' />
-                  <span>Stop</span>
+                  <Loader2 className='w-4 h-4 animate-spin' />
+                  <span>Running...</span>
                 </>
               ) : (
                 <>
                   <Play className='w-4 h-4' />
-                  <span>Run</span>
+                  <span>Execute</span>
                 </>
               )}
             </button>
@@ -292,11 +291,10 @@ export const ModernHeader: React.FC<ModernHeaderProps> = ({
             <button
               onClick={handleSaveOrOpen}
               disabled={nodes.length === 0 || saveWorkflow?.isLoading || updateWorkflow?.isLoading}
-              className={`flex items-center space-x-2 px-4 py-1.5 rounded-lg font-medium transition-colors ${
-                nodes.length === 0 || saveWorkflow?.isLoading || updateWorkflow?.isLoading
-                  ? 'bg-slate-100 text-slate-400 cursor-not-allowed'
-                  : 'bg-blue-600 text-white hover:bg-blue-700'
-              }`}
+              className={`flex items-center space-x-2 px-4 py-1.5 rounded-lg font-medium transition-colors ${nodes.length === 0 || saveWorkflow?.isLoading || updateWorkflow?.isLoading
+                ? 'bg-slate-100 text-slate-400 cursor-not-allowed'
+                : 'bg-blue-600 text-white hover:bg-blue-700'
+                }`}
             >
               <SaveAll className='w-4 h-4' />
               <span>{saveWorkflow?.isLoading || updateWorkflow?.isLoading ? 'Saving...' : 'Save'}</span>
@@ -319,22 +317,6 @@ export const ModernHeader: React.FC<ModernHeaderProps> = ({
             )}
           </div>
         </div>
-
-        {/* Progress Bar (when running) */}
-        {isRunning && (
-          <div className='mt-4'>
-            <div className='flex items-center justify-between text-sm text-slate-600 dark:text-gray-300 mb-2'>
-              <span>Workflow Progress</span>
-              <span>Step 2 of 5</span>
-            </div>
-            <div className='w-full bg-slate-200 rounded-full h-2'>
-              <div
-                className='bg-gradient-to-r from-blue-500 to-purple-500 h-2 rounded-full transition-all duration-300'
-                style={{ width: '40%' }}
-              ></div>
-            </div>
-          </div>
-        )}
       </div>
 
       {/* Modal for workflow details */}

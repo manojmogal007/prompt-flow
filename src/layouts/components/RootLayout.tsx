@@ -2,6 +2,7 @@ import { Fragment, useMemo, type FC } from 'react';
 import { useLocation } from 'react-router';
 import AuthLayout from '../AuthLayout';
 import { MainLayout } from '../MainLayout';
+import BootstrapGate from './BootstrapGate';
 
 const RootLayout: FC = () => {
   const location = useLocation();
@@ -12,7 +13,17 @@ const RootLayout: FC = () => {
       : false;
   }, [location.pathname]);
 
-  return <Fragment>{isAuthLayout ? <AuthLayout /> : <MainLayout />}</Fragment>;
+  return (
+    <Fragment>
+      {isAuthLayout ? (
+        <AuthLayout />
+      ) : (
+        <BootstrapGate>
+          <MainLayout />
+        </BootstrapGate>
+      )}
+    </Fragment>
+  );
 };
 
 export default RootLayout;

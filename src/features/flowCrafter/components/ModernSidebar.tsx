@@ -5,13 +5,12 @@ import {
   Trash2,
   Sparkles,
   SquarePen,
-  Search,
   ChevronDown,
-  ChevronRight,
   FileText,
   LibraryBig,
   Cable,
 } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../../../auth/useAuth';
 import { useApiMutation, useApiQuery } from '../../../utils/customHooks/apiHooks';
 import { useGetStepsRequestQuery, usePostStepsRequestMutation } from '../../../utils/services/genericService';
@@ -20,6 +19,7 @@ import { useToast } from '../../../hooks/useToast';
 import { Tooltip } from '../../../utils/helperComponents/Tooltip';
 import { useParams } from 'react-router';
 import { decodeNameAndId } from '../../../utils/helperFunctions/HelperFunctions';
+import { Searchbar } from '../../../utils/helperComponents/Searchbar';
 import _ from 'lodash';
 
 type NodeType = 'genericNode' | 'inputNode' | 'outputNode' | 'decisionNode' | 'dataProcessingNode';
@@ -69,7 +69,6 @@ export const ModernSidebar: React.FC<ModernSidebarProps> = ({ onDragStart, isOwn
     steps: getPromptSteps?.data?.customSteps || [],
   };
 
-  // Template nodes for quick access
   const templateNodes = [
     {
       type: 'inputNode',
@@ -78,27 +77,6 @@ export const ModernSidebar: React.FC<ModernSidebarProps> = ({ onDragStart, isOwn
       icon: FileText,
       color: 'emerald',
     },
-    // {
-    //   type: 'outputNode',
-    //   name: 'Output',
-    //   description: 'Display results to users',
-    //   icon: Download,
-    //   color: 'purple',
-    // },
-    // {
-    //   type: 'decisionNode',
-    //   name: 'Decision',
-    //   description: 'Add conditional logic',
-    //   icon: GitBranch,
-    //   color: 'orange',
-    // },
-    // {
-    //   type: 'dataProcessingNode',
-    //   name: 'Data Processing',
-    //   description: 'Transform and process data',
-    //   icon: Database,
-    //   color: 'indigo',
-    // },
   ];
 
   const triggerDeleteStep = async (stepId: any) => {
@@ -138,224 +116,268 @@ export const ModernSidebar: React.FC<ModernSidebarProps> = ({ onDragStart, isOwn
   );
 
   return (
-    <div className='h-full bg-gradient-to-b from-slate-50 to-white dark:from-dark-900 dark:to-dark-800 border-r border-slate-200 dark:border-dark-700 flex flex-col relative z-10'>
-      {/* Header */}
-      <div className='p-4 border-b border-slate-200 dark:border-dark-700 bg-white dark:bg-dark-900'>
-        <div className='flex items-center space-x-2 mb-4'>
-          <div className='p-2 bg-blue-500 rounded-lg'>
-            <LibraryBig className='w-5 h-5 text-white' />
+    <div className='h-full flex flex-col'>
+      {/* Floating Header */}
+      <div className='p-4'>
+        <div className='bg-white/80 dark:bg-dark-900/80 backdrop-blur-xl border border-white/20 dark:border-white/10 p-4 rounded-2xl shadow-sm'>
+          <div className='flex items-center gap-3 mb-4'>
+            <div className='p-2.5 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl shadow-lg shadow-blue-500/20'>
+              <LibraryBig className='w-5 h-5 text-white' />
+            </div>
+            <div>
+              <h2 className='text-base font-bold text-gray-900 dark:text-gray-100'>Components</h2>
+              <p className='text-xs text-gray-500 dark:text-gray-400'>Drag & drop to build</p>
+            </div>
           </div>
-          <div>
-            <h2 className='text-lg font-semibold text-slate-800 dark:text-dark-100'>Component Library</h2>
-            <p className='text-sm text-slate-500 dark:text-dark-400'>Drag components to build your workflow</p>
-          </div>
-        </div>
-
-        {/* Search */}
-        <div className='relative'>
-          <Search className='absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400' />
-          <input
-            type='text'
-            placeholder='Search components...'
+          <Searchbar
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className='w-full pl-10 pr-4 py-2 border border-slate-200 dark:border-dark-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-sm bg-white dark:bg-dark-800 dark:text-dark-100 shadow-sm'
+            handleInput={setSearchTerm}
+            placeholder="Search steps..."
+            size="sm"
           />
         </div>
       </div>
 
-      {/* Content */}
-      <div className='flex-1 overflow-y-auto p-4 space-y-6'>
-        {/* Template Nodes */}
-        <div>
-          <button onClick={() => toggleSection('actions')} className='flex items-center justify-between w-full text-left mb-3'>
-            <div className='flex items-center space-x-2'>
-              <div className='p-1 bg-gradient-to-r from-blue-500 to-purple-500 rounded-lg'>
-                <Cable className='w-4 h-4 text-white' />
+      {/* Content Area */}
+      <div className='flex-1 overflow-y-auto px-4 pb-4 space-y-4 scrollbar-hide'>
+
+        {/* Actions Section */}
+        <div className="bg-white/50 dark:bg-dark-800/50 rounded-2xl border border-slate-200/60 dark:border-dark-700/60 overflow-hidden">
+          <button
+            onClick={() => toggleSection('actions')}
+            className='flex items-center justify-between w-full p-3 hover:bg-slate-50 dark:hover:bg-dark-700/50 transition-colors'
+          >
+            <div className='flex items-center gap-2.5'>
+              <div className='p-1.5 bg-purple-100 dark:bg-purple-900/30 rounded-lg'>
+                <Cable className='w-4 h-4 text-purple-600 dark:text-purple-400' />
               </div>
-              <h3 className='font-semibold text-slate-700 dark:text-dark-200'>Actions</h3>
+              <span className='text-sm font-semibold text-gray-700 dark:text-gray-200'>Actions</span>
             </div>
-            {expandedSections.actions ? (
-              <ChevronDown className='w-4 h-4 text-slate-500' />
-            ) : (
-              <ChevronRight className='w-4 h-4 text-slate-500' />
-            )}
+            <motion.div
+              animate={{ rotate: expandedSections.actions ? 180 : 0 }}
+              transition={{ duration: 0.2 }}
+            >
+              <ChevronDown className='w-4 h-4 text-gray-400' />
+            </motion.div>
           </button>
 
-          {expandedSections.actions && (
-            <div className='space-y-2'>
-              {filteredTemplates.map((template, index) => {
-                const IconComponent = template.icon;
-                return (
-                  <div
-                    key={index}
-                    className={`group p-3 border border-slate-200 dark:border-gray-700 rounded-xl cursor-grab active:cursor-grabbing transition-all duration-200 hover:shadow-md hover:border-${template.color}-300 hover:bg-${template.color}-50 dark:hover:bg-gray-800 dark:bg-gray-800/50`}
-                    onDragStart={(event) => {
-                      onDragStart(event, template.type as NodeType, { name: template.name, type: template.type });
-                    }}
-                    draggable
-                  >
-                    <div className='flex items-center space-x-3'>
-                      <div className={`p-2 bg-${template.color}-100 rounded-lg`}>
-                        <IconComponent className={`w-4 h-4 text-${template.color}-600`} />
+          <AnimatePresence>
+            {expandedSections.actions && (
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: 'auto', opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                className='px-3 pb-3'
+              >
+                <div className='space-y-2 pt-1'>
+                  {filteredTemplates.map((template, index) => {
+                    const IconComponent = template.icon;
+                    return (
+                      <div
+                        key={index}
+                        className='group relative flex items-center gap-3 p-3 bg-white dark:bg-dark-900 border border-slate-200 dark:border-dark-700 rounded-xl cursor-grab active:cursor-grabbing hover:border-purple-300 dark:hover:border-purple-500/50 hover:shadow-lg hover:shadow-purple-500/5 transition-all duration-200'
+                        onDragStart={(event) => {
+                          onDragStart(event, template.type as NodeType, { name: template.name, type: template.type });
+                        }}
+                        draggable
+                      >
+                        <div className={`p-2 bg-${template.color}-50 dark:bg-${template.color}-900/20 rounded-lg group-hover:bg-${template.color}-100 dark:group-hover:bg-${template.color}-900/40 transition-colors`}>
+                          <IconComponent className={`w-4 h-4 text-${template.color}-600 dark:text-${template.color}-400`} />
+                        </div>
+                        <div>
+                          <p className='text-sm font-medium text-gray-900 dark:text-gray-100'>
+                            {template.name}
+                          </p>
+                          <p className='text-xs text-gray-500 dark:text-gray-400'>
+                            {template.description}
+                          </p>
+                        </div>
                       </div>
-                      <div className='flex-1 min-w-0'>
-                        <p className='text-sm font-medium text-slate-700 group-hover:text-slate-900 dark:text-gray-200 dark:group-hover:text-white'>
-                          {template.name}
-                        </p>
-                        <p className='text-xs text-slate-500 dark:text-gray-400'>{template.description}</p>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
+                    );
+                  })}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
 
+        {/* System & Custom Steps Sections follow similar pattern... */}
+
         {/* System Steps */}
-        <div>
-          <button onClick={() => toggleSection('system')} className='flex items-center justify-between w-full text-left mb-3'>
-            <div className='flex items-center space-x-2'>
-              <div className='p-1 bg-blue-500 rounded-lg'>
-                <LaptopMinimal className='w-4 h-4 text-white' />
+        <div className="bg-white/50 dark:bg-dark-800/50 rounded-2xl border border-slate-200/60 dark:border-dark-700/60 overflow-hidden">
+          <button
+            onClick={() => toggleSection('system')}
+            className='flex items-center justify-between w-full p-3 hover:bg-slate-50 dark:hover:bg-dark-700/50 transition-colors'
+          >
+            <div className='flex items-center gap-2.5'>
+              <div className='p-1.5 bg-blue-100 dark:bg-blue-900/30 rounded-lg'>
+                <LaptopMinimal className='w-4 h-4 text-blue-600 dark:text-blue-400' />
               </div>
-              <h3 className='font-semibold text-slate-700 dark:text-gray-200'>System Prompts</h3>
-              <span className='text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full'>
+              <span className='text-sm font-semibold text-gray-700 dark:text-gray-200'>System</span>
+              <span className='px-1.5 py-0.5 text-[10px] font-medium bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-full'>
                 {Object.values(systemSteps.steps).flat().length}
               </span>
             </div>
-            {expandedSections.system ? (
-              <ChevronDown className='w-4 h-4 text-slate-500' />
-            ) : (
-              <ChevronRight className='w-4 h-4 text-slate-500' />
-            )}
+            <motion.div
+              animate={{ rotate: expandedSections.system ? 180 : 0 }}
+              transition={{ duration: 0.2 }}
+            >
+              <ChevronDown className='w-4 h-4 text-gray-400' />
+            </motion.div>
           </button>
 
-          {expandedSections.system && (
-            <div className='space-y-4'>
-              {Object.entries(filteredSystemSteps).map(([category, steps]) => (
-                <div key={category}>
-                  <h4 className='text-sm font-medium text-slate-600 mb-2 px-2 py-1 bg-slate-100 dark:bg-gray-800 dark:text-gray-300 rounded-lg'>
-                    {category}
-                  </h4>
-                  <div className='space-y-2'>
-                    {(steps as any[]).map((step: any, stepIndex: number) => (
+          <AnimatePresence>
+            {expandedSections.system && (
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: 'auto', opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                className='px-3 pb-3'
+              >
+                <div className='space-y-4 pt-1'>
+                  {Object.entries(filteredSystemSteps).map(([category, steps]) => (
+                    <div key={category}>
+                      <div className='flex items-center gap-2 mb-2'>
+                        <h4 className='text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider'>
+                          {category}
+                        </h4>
+                        <div className="h-px flex-1 bg-slate-100 dark:bg-dark-700"></div>
+                      </div>
+                      <div className='space-y-2'>
+                        {(steps as any[]).map((step: any, stepIndex: number) => (
+                          <div
+                            key={`${category}-${stepIndex}`}
+                            className='group relative flex items-center p-3 bg-white dark:bg-dark-900 border border-slate-200 dark:border-dark-700 rounded-xl cursor-grab active:cursor-grabbing hover:border-blue-300 dark:hover:border-blue-500/50 hover:shadow-lg hover:shadow-blue-500/5 transition-all duration-200'
+                            onDragStart={(event) => {
+                              onDragStart(event, 'genericNode', step);
+                            }}
+                            draggable
+                          >
+                            <div className="p-2 bg-slate-50 dark:bg-dark-800 rounded-lg mr-3 group-hover:bg-blue-50 dark:group-hover:bg-blue-900/20 transition-colors">
+                              <Sparkles className="w-4 h-4 text-slate-400 group-hover:text-blue-500 transition-colors" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-medium text-gray-700 dark:text-gray-200 group-hover:text-blue-600 dark:group-hover:text-blue-400 truncate transition-colors">
+                                {step.name}
+                              </p>
+                              {step.description && (
+                                <p className="text-xs text-gray-400 dark:text-gray-500 truncate mt-0.5">
+                                  {step.description}
+                                </p>
+                              )}
+                            </div>
+                            <Tooltip text={`Prompt: ${step?.prompt}`} width={300}>
+                              <div className="opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-slate-100 dark:hover:bg-dark-700 rounded">
+                                <FileText className="w-3.5 h-3.5 text-gray-400" />
+                              </div>
+                            </Tooltip>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+
+        <div className="bg-white/50 dark:bg-dark-800/50 rounded-2xl border border-slate-200/60 dark:border-dark-700/60 overflow-hidden">
+          <div className='flex items-center justify-between w-full p-3 hover:bg-slate-50 dark:hover:bg-dark-700/50 transition-colors cursor-pointer' onClick={() => toggleSection('custom')}>
+            <div className='flex items-center gap-2.5'>
+              <div className='p-1.5 bg-emerald-100 dark:bg-emerald-900/30 rounded-lg'>
+                <NotebookPen className='w-4 h-4 text-emerald-600 dark:text-emerald-400' />
+              </div>
+              <span className='text-sm font-semibold text-gray-700 dark:text-gray-200'>Custom</span>
+              <span className='px-1.5 py-0.5 text-[10px] font-medium bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 rounded-full'>
+                {customSteps.steps.length}
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              {isOwner && (
+                <div onClick={(e) => { e.stopPropagation(); console.log('AddCustomStep wrapper clicked') }}>
+                  <AddCustomStep editStep={editStep} setEditstep={setEditstep} />
+                </div>
+              )}
+              <motion.div
+                animate={{ rotate: expandedSections.custom ? 180 : 0 }}
+                transition={{ duration: 0.2 }}
+              >
+                <ChevronDown className='w-4 h-4 text-gray-400' />
+              </motion.div>
+            </div>
+          </div>
+
+          <AnimatePresence>
+            {expandedSections.custom && (
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: 'auto', opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                className='px-3 pb-3'
+              >
+                <div className='space-y-2 pt-1'>
+                  {filteredCustomSteps.length > 0 ? (
+                    filteredCustomSteps.map((step: any, index: number) => (
                       <div
-                        key={`${category}-${stepIndex}`}
-                        className='group p-3 border border-slate-200 dark:border-gray-700 rounded-xl cursor-grab active:cursor-grabbing transition-all duration-200 hover:border-blue-300 hover:shadow-md hover:bg-blue-50 dark:hover:bg-gray-800 dark:bg-gray-800/50'
+                        key={`custom-${index}`}
+                        className='group relative flex items-center p-3 bg-white dark:bg-dark-900 border border-slate-200 dark:border-dark-700 rounded-xl cursor-grab active:cursor-grabbing hover:border-emerald-300 dark:hover:border-emerald-500/50 hover:shadow-lg hover:shadow-emerald-500/5 transition-all duration-200'
                         onDragStart={(event) => {
                           onDragStart(event, 'genericNode', step);
                         }}
                         draggable
                       >
-                        <div className='flex items-center justify-between'>
-                          <div className='flex items-center space-x-3 flex-1 min-w-0'>
-                            <div className='p-1.5 bg-blue-100 rounded-lg'>
-                              <Sparkles className='w-4 h-4 text-blue-600' />
-                            </div>
-                            <div className='flex-1 min-w-0'>
-                              <p className='text-sm font-medium text-slate-700 group-hover:text-blue-700 dark:text-gray-200 dark:group-hover:text-blue-400 truncate'>
-                                {step.name}
-                              </p>
-                              {step.description && (
-                                <p className='text-xs text-slate-500 dark:text-gray-400 mt-1 line-clamp-2'>{step.description}</p>
-                              )}
-                            </div>
+                        {/* Hover Actions */}
+                        {isOwner && (
+                          <div className='absolute -top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity z-10'>
+                            <button
+                              onClick={() => handleEdit(step)}
+                              className='p-1 bg-white dark:bg-dark-800 border border-slate-200 dark:border-dark-600 rounded-md hover:text-blue-500 transition-colors shadow-sm'
+                            >
+                              <SquarePen className='w-3 h-3' />
+                            </button>
+                            <button
+                              onClick={() => triggerDeleteStep(step._id)}
+                              className='p-1 bg-white dark:bg-dark-800 border border-slate-200 dark:border-dark-600 rounded-md hover:text-red-500 transition-colors shadow-sm'
+                            >
+                              <Trash2 className='w-3 h-3' />
+                            </button>
                           </div>
-                          <Tooltip text={`Prompt: ${step?.prompt}`} width={300}>
-                            <div className='opacity-0 group-hover:opacity-100 transition-opacity'>
-                              <Sparkles className='w-4 h-4 text-blue-600' />
-                            </div>
-                          </Tooltip>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* Custom Steps */}
-        <div>
-          <div className='flex items-center justify-between mb-3'>
-            <button onClick={() => toggleSection('custom')} className='flex items-center space-x-2'>
-              <div className='p-1 bg-green-500 rounded-lg'>
-                <NotebookPen className='w-4 h-4 text-white' />
-              </div>
-              <h3 className='font-semibold text-slate-700 dark:text-gray-200'>Custom Prompts</h3>
-              <span className='text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full'>{customSteps.steps.length}</span>
-            </button>
-            {isOwner && (
-              <div className='flex items-center space-x-2'>
-                <div onClick={() => console.log('AddCustomStep wrapper clicked')}>
-                  <AddCustomStep editStep={editStep} setEditstep={setEditstep} />
-                </div>
-                {/* <span className='text-xs text-slate-500'>Add step</span> */}
-              </div>
-            )}
-          </div>
-
-          {expandedSections.custom && (
-            <div className='space-y-2'>
-              {filteredCustomSteps.length > 0 ? (
-                filteredCustomSteps.map((step: any, index: number) => (
-                  <div
-                    key={`custom-${index}`}
-                    className='relative group p-3 border border-slate-200 dark:border-gray-700 rounded-xl cursor-grab active:cursor-grabbing transition-all duration-200 hover:border-green-300 hover:shadow-md hover:bg-green-50 dark:hover:bg-gray-800 dark:bg-gray-800/50'
-                    onDragStart={(event) => {
-                      onDragStart(event, 'genericNode', step);
-                    }}
-                    draggable
-                  >
-                    {isOwner && (
-                      <div className='absolute -top-2 -right-2 flex space-x-1 opacity-0 group-hover:opacity-100 transition-opacity'>
-                        <button
-                          onClick={() => handleEdit(step)}
-                          className='p-1 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors'
-                        >
-                          <SquarePen className='w-3 h-3 text-slate-600' />
-                        </button>
-                        <button
-                          onClick={() => triggerDeleteStep(step._id)}
-                          className='p-1 bg-white border border-slate-300 rounded-lg hover:bg-red-50 hover:border-red-300 transition-colors dark:bg-gray-700 dark:border-gray-600'
-                        >
-                          <Trash2 className='w-3 h-3 text-red-500' />
-                        </button>
-                      </div>
-                    )}
-                    <div className='flex items-center space-x-3'>
-                      <div className='p-1.5 bg-green-100 rounded-lg'>
-                        <Sparkles className='w-4 h-4 text-green-600' />
-                      </div>
-                      <div className='flex-1 min-w-0'>
-                        <p className='text-sm font-medium text-slate-700 group-hover:text-green-700 dark:text-gray-200 dark:group-hover:text-green-400 truncate'>
-                          {step.name}
-                        </p>
-                        {step.description && (
-                          <p className='text-xs text-slate-500 dark:text-gray-400 mt-1 line-clamp-2'>{step.description}</p>
                         )}
+
+                        <div className="p-2 bg-emerald-50 dark:bg-emerald-900/20 rounded-lg mr-3 group-hover:bg-emerald-100 dark:group-hover:bg-emerald-900/40 transition-colors">
+                          <Sparkles className="w-4 h-4 text-emerald-500" />
+                        </div>
+
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-gray-700 dark:text-gray-200 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 truncate transition-colors">
+                            {step.name}
+                          </p>
+                          {step.description && (
+                            <p className="text-xs text-gray-400 dark:text-gray-500 truncate mt-0.5">
+                              {step.description}
+                            </p>
+                          )}
+                        </div>
+                        <Tooltip text={`Prompt: ${step?.prompt}`} width={300}>
+                          <div className="opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 rounded cursor-help">
+                            <FileText className="w-3.5 h-3.5 text-gray-400 group-hover:text-emerald-500 transition-colors" />
+                          </div>
+                        </Tooltip>
                       </div>
-                      <Tooltip text={`Prompt: ${step?.prompt}`} width={300}>
-                        <Sparkles className='w-4 h-4 text-green-600' />
-                      </Tooltip>
+                    ))
+                  ) : (
+                    <div className='text-center py-6 border-2 border-dashed border-slate-200 dark:border-dark-700 rounded-xl bg-slate-50/50 dark:bg-dark-800/50'>
+                      <NotebookPen className='w-6 h-6 text-slate-300 mx-auto mb-2' />
+                      <p className='text-xs text-slate-500 dark:text-gray-400'>No custom steps</p>
                     </div>
-                  </div>
-                ))
-              ) : (
-                <div className='text-center py-8'>
-                  <div className='w-16 h-16 mx-auto mb-4 bg-slate-100 rounded-full flex items-center justify-center'>
-                    <NotebookPen className='w-8 h-8 text-slate-400' />
-                  </div>
-                  <p className='text-sm text-slate-500 dark:text-gray-400 mb-2'>No custom steps yet</p>
-                  <p className='text-xs text-slate-400'>Create your first custom step</p>
+                  )}
                 </div>
-              )}
-            </div>
-          )}
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
+
       </div>
     </div>
   );

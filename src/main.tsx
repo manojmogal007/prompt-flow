@@ -12,6 +12,7 @@ import { ReactFlowProvider } from '@xyflow/react';
 import { DnDProvider } from './features/flowCrafter/context/DnDContext';
 import { ToastProvider } from './contexts/toastContext';
 import { ThemeProvider } from './contexts/ThemeContext';
+import { SettingsProvider } from './contexts/SettingsContext';
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
@@ -19,13 +20,15 @@ createRoot(document.getElementById('root')!).render(
       <ToastProvider>
         <Provider store={store}>
           <AuthProvider>
-            <ReactFlowProvider>
-              <DndProvider backend={HTML5Backend}>
-                <DnDProvider>
-                  <RouterProvider router={router} />
-                </DnDProvider>
-              </DndProvider>
-            </ReactFlowProvider>
+            <SettingsProvider>
+              <ReactFlowProvider>
+                <DndProvider backend={HTML5Backend}>
+                  <DnDProvider>
+                    <RouterProvider router={router} />
+                  </DnDProvider>
+                </DndProvider>
+              </ReactFlowProvider>
+            </SettingsProvider>
           </AuthProvider>
         </Provider>
       </ToastProvider>

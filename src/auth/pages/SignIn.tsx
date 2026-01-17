@@ -2,7 +2,6 @@ import { Eye, EyeOff, Lock, Mail } from 'lucide-react';
 import React from 'react';
 import { useApiMutation } from '../../utils/customHooks/apiHooks';
 import { usePostAuthRequestMutation } from '../../utils/services/authService';
-import { APP_NAME } from '../../config';
 import { useAppDispatch } from '../../store/hooks';
 import { handleAccessToken } from '../authSlice';
 import { Link, useNavigate } from 'react-router';
@@ -56,7 +55,7 @@ export const SignIn: React.FC = () => {
               </div>
             </div>
             <div className='flex items-center justify-center space-x-3 mb-6'>
-              <h1 className='text-3xl font-bold text-gray-900 dark:text-white'>Sign in to {APP_NAME}</h1>
+              <h1 className='text-3xl font-bold text-gray-900 dark:text-white'>Sign in </h1>
             </div>
           </div>
 

@@ -5,10 +5,14 @@ import { useDnD } from '../context/DnDContext';
 import { GenericNode } from '../components/nodes/GenericNode';
 import { v4 as uuidv4 } from 'uuid';
 import { useParams } from 'react-router';
-import { useGetWorkflowRequestQuery } from '../../../utils/services/genericService';
-import { useApiQuery } from '../../../utils/customHooks/apiHooks';
-import { useAuth } from '../../../auth/useAuth';
 import { decodeNameAndId } from '../../../utils/helperFunctions/HelperFunctions';
+import {
+  useGetWorkflowRequestQuery,
+  useGetExecutionRequestQuery,
+  usePostExecutionRequestMutation,
+} from '../../../utils/services/genericService';
+import { ExecutionPanel } from '../components/ExecutionPanel';
+import { MiniProgressHeader } from '../components/MiniProgressHeader';
 import {
   ClientSideSuspense,
   LiveblocksProvider,
@@ -30,6 +34,10 @@ import DataProcessingNode from '../components/nodes/DataProcessingNode';
 import ModernSidebar from '../components/ModernSidebar';
 import ModernHeader from '../components/ModernHeader';
 import { ModernCanvas } from '../components/ModernCanvas';
+import { useAuth } from '../../../auth/useAuth';
+import { useApiQuery, useApiMutation } from '../../../utils/customHooks/apiHooks';
+import { ExecutionHistoryDrawer } from '../components/ExecutionHistoryDrawer';
+import { useSettings } from '../../../hooks/useSettings';
 
 const inputNode = {
   id: 'cb02b245-7d6c-4925-96f2-c30328d972ba',
@@ -41,9 +49,7 @@ const inputNode = {
   data: {
     _id: '68a1e306b2cb2d799ad378a4',
     name: 'Text Input',
-    prompt: 'Summarize the following customer review into 2–3 sentences.',
     type: 'system',
-    category: 'Summarization',
     __v: 0,
   },
   measured: {
@@ -58,12 +64,14 @@ const CollaborativeFlowCrafter: React.FC = () => {
   const { showToast } = useToast();
   const { encodedParams } = useParams();
   const { id: workflowId } = decodeNameAndId(encodedParams || '');
+  const { isExecutionLimitReached, refetchSettings } = useSettings();
   // const reactFlowWrapper = useRef<HTMLDivElement | null>(null);
   const lastWarningRef = useRef<number>(0);
 
   // Liveblocks hooks
   const nodes = useStorage((root) => root.nodes);
-  const edges = useStorage((root) => root.edges);
+  const currentNodes = (nodes as unknown as any[]) || [];
+  const edges: any = useStorage((root) => root.edges);
   const formData: any = useStorage((root) => root.formData);
   const [myPresence, updateMyPresence] = useMyPresence();
   const others = useOthers();
@@ -88,8 +96,89 @@ const CollaborativeFlowCrafter: React.FC = () => {
   // );
   const broadcast = useBroadcastEvent();
 
+  // Execution state
+  const [showExecutionPanel, setShowExecutionPanel] = useState(false);
+  const [executionId, setExecutionId] = useState<string | null>(null);
+  const [pollingInterval, setPollingInterval] = useState(0);
+  const [showHistoryDrawer, setShowHistoryDrawer] = useState(false);
+
+  // Poll for execution status to update nodes
+  const statusQuery = useApiQuery(useGetExecutionRequestQuery, `/execution/execution/${executionId}?userId=${user?.id}`, {
+    skipQuery: !executionId,
+    polling: pollingInterval,
+  });
+  const executionStatus: any = statusQuery.data;
+
+  // Monitor execution status
+  useEffect(() => {
+    const status = executionStatus?.execution?.status;
+
+    if (status === 'running' || status === 'pending') {
+      setPollingInterval(2000);
+      // Auto-close panel to show visual tracking on canvas
+      if (showExecutionPanel) {
+        setShowExecutionPanel(false);
+      }
+    } else if (status === 'completed' || status === 'failed' || status === 'cancelled') {
+      setPollingInterval(0);
+
+      // Auto-open panel on completion if not already open
+      if ((status === 'completed' || status === 'failed') && !showExecutionPanel && executionId) {
+        setShowExecutionPanel(true);
+      }
+    }
+  }, [executionStatus, executionId]);
+
+  const executeWorkflowMutation = useApiMutation(usePostExecutionRequestMutation, '/execution/execute', {
+    onError: (error: any) => showToast(error?.data?.message || 'Execution failed', 'error'),
+    onSuccess: () => refetchSettings(),
+  });
+
+  const handleExecute = async () => {
+    if (isExecutionLimitReached) {
+      showToast('Execution limit reached', 'error', 'You have reached your execution limit. Please upgrade your plan.', 5000);
+      return;
+    }
+    // 1. Find Input Node text
+    const inputNode = currentNodes.find((n: any) => n.type === 'inputNode');
+
+    if (!inputNode?.data?.text) {
+      showToast('Please enter text in the Input Node first', 'error');
+      setShowExecutionPanel(true); // Open panel to let them enter it if they prefer
+      return;
+    }
+
+    try {
+      const payload = {
+        workflowId,
+        workflowJson: { nodes, edges },
+        initialInput: inputNode.data.text,
+        executionName: `Run ${new Date().toLocaleString()}`,
+        user,
+      };
+      const response: any = await executeWorkflowMutation.handleTrigger(payload);
+      if (response?.data?.executionId) {
+        setExecutionId(response.data.executionId);
+        setShowExecutionPanel(false); // Ensure modal is closed for background run
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const handleHistoryClick = () => {
+    setShowHistoryDrawer(true);
+  };
+
+  const handleHistorySelect = (id: string) => {
+    setExecutionId(id);
+    setShowHistoryDrawer(false);
+    setShowExecutionPanel(true);
+    // Let the effect handle polling update based on status
+  };
+
   // Local ReactFlow state (will sync with Liveblocks)
-  const [localNodes, setLocalNodes, onNodesChange] = useNodesState([inputNode]);
+  const [localNodes, setLocalNodes, onNodesChange] = useNodesState<any>([inputNode]);
   const [localEdges, setLocalEdges, onEdgesChange] = useEdgesState([]);
   const [localFormData, setLocalFormData] = useState<Record<string, string>>({});
   // console.log('node', nodes);
@@ -109,12 +198,38 @@ const CollaborativeFlowCrafter: React.FC = () => {
     storage.set('formData', new LiveObject(newFormData));
   }, []);
 
-  // Sync Liveblocks storage to local state
+  // Sync Liveblocks storage to local state and update styles based on execution
   useEffect(() => {
     if (nodes && Array.isArray(nodes)) {
-      setLocalNodes(Array.from(nodes) as any);
+      const liveNodes = Array.from(nodes) as any;
+
+      // If executing, override styles
+      if (executionId && executionStatus?.execution) {
+        const { currentStep, executionOrder } = executionStatus.execution;
+        const currentIndex = executionOrder?.indexOf(currentStep) ?? -1;
+
+        const styledNodes = liveNodes.map((node: any) => {
+          const nodeIndex = executionOrder?.indexOf(node.id) ?? -1;
+          let style = node.style || {};
+          let className = node.className || '';
+
+          if (node.id === currentStep) {
+            // Processing
+            style = { ...style, boxShadow: '0 0 0 2px #3b82f6', transition: 'all 0.3s', borderRadius: '8px' };
+            className = `${className} animate-pulse`;
+          } else if (nodeIndex !== -1 && nodeIndex < currentIndex) {
+            // Completed
+            style = { ...style, opacity: 0.8 };
+          }
+
+          return { ...node, style, className };
+        });
+        setLocalNodes(styledNodes);
+      } else {
+        setLocalNodes(liveNodes);
+      }
     }
-  }, [nodes]);
+  }, [nodes, executionStatus, executionId]);
 
   useEffect(() => {
     if (edges && Array.isArray(edges)) {
@@ -138,7 +253,6 @@ const CollaborativeFlowCrafter: React.FC = () => {
   const userRole = workflow?.data?.userRole || '';
   const restrictEditing = userRole === 'viewer' || false;
   const isOwner = userRole === 'owner' || false;
-  const workflowCreatorId = workflow?.data?.workflow?.workflowJson?.creatorId || '';
 
   // Initialize storage from API data
   useEffect(() => {
@@ -216,7 +330,7 @@ const CollaborativeFlowCrafter: React.FC = () => {
       return;
     }
     lastWarningRef.current = now;
-    showToast('You are not allowed to edit this workflow', 'warning');
+    showToast('Editing is disabled', 'warning', 'You are not allowed to edit this workflow');
   };
 
   const onConnect = useCallback(
@@ -394,13 +508,7 @@ const CollaborativeFlowCrafter: React.FC = () => {
   // Create stable wrapper components to prevent re-creation and focus loss
   const InputTakerWrapper = useCallback(
     (props: any) => {
-      return (
-        <InputTaker
-          {...props}
-          data={props.data}
-          onPromptChange={(text: string) => updateInputTakerNode(props.id, text)}
-        />
-      );
+      return <InputTaker {...props} data={props.data} onPromptChange={(text: string) => updateInputTakerNode(props.id, text)} />;
     },
     [updateInputTakerNode],
   );
@@ -456,9 +564,18 @@ const CollaborativeFlowCrafter: React.FC = () => {
     updateMyPresence({ cursor: null });
   }, [updateMyPresence]);
 
+  const retoreNodes = () => {
+    const restoredNodes: any = (nodes as any)?.reduce((acc: any, node: any) => {
+      let temp = { ...node };
+      delete temp.style;
+      delete temp.className;
+      return [...acc, temp];
+    }, []);
+    setLocalNodes(restoredNodes);
+  };
+
   return (
-    <div className='w-full h-screen bg-slate-50 dark:bg-dark-900 flex flex-col'>
-      {/* Modern Header */}
+    <div className='w-full h-[calc(100vh-80px)] bg-slate-50 dark:bg-dark-900 flex flex-col relative'>
       <ModernHeader
         nodes={localNodes}
         edges={localEdges}
@@ -466,18 +583,45 @@ const CollaborativeFlowCrafter: React.FC = () => {
         formData={localFormData}
         handleFormDataChange={handleFormDataChange}
         collaborators={others}
-        workflowCreatorId={workflowCreatorId}
+        onExecute={handleExecute}
+        onHistory={handleHistoryClick}
+        isExecuting={executeWorkflowMutation.isLoading || executionStatus?.execution?.status === 'running'}
       />
 
-      {/* Main Content Area */}
+      {showExecutionPanel && (
+        <ExecutionPanel
+          nodes={currentNodes}
+          edges={edges}
+          workflowId={workflowId}
+          onClose={() => setShowExecutionPanel(false)}
+          executionId={executionId}
+          setExecutionId={setExecutionId}
+          onRestoreNodes={retoreNodes}
+        />
+      )}
+
+      <ExecutionHistoryDrawer
+        isOpen={showHistoryDrawer}
+        onClose={() => setShowHistoryDrawer(false)}
+        onSelectExecution={handleHistorySelect}
+        workflowId={workflowId}
+      />
+
       <div className='flex-1 flex overflow-hidden'>
-        {/* Modern Sidebar */}
         <div className='w-80 flex-shrink-0'>
           <ModernSidebar onDragStart={onDragStart} isOwner={isOwner} />
         </div>
-
-        {/* Modern Canvas */}
         <div className='flex-1 relative'>
+          {' '}
+          {executionStatus &&
+            (executionStatus.execution.status === 'running' || executionStatus.execution.status === 'pending') &&
+            !showExecutionPanel && (
+              <MiniProgressHeader
+                status={executionStatus.execution.status}
+                progress={executionStatus.execution.progress}
+                currentStepName={executionStatus.execution.currentStepName}
+              />
+            )}
           <ModernCanvas
             nodes={localNodes}
             edges={localEdges}
@@ -487,7 +631,7 @@ const CollaborativeFlowCrafter: React.FC = () => {
             onDrop={onDrop}
             onDragOver={onDragOver}
             onNodeClick={handleNodeClick}
-            onPointerMove={() => { }}
+            onPointerMove={() => {}}
             onPointerLeave={handlePointerLeave}
             onCursorMove={handleCursorMove}
             nodeTypes={nodeTypes}
@@ -495,9 +639,6 @@ const CollaborativeFlowCrafter: React.FC = () => {
           />
         </div>
       </div>
-
-      {/* Test Modal for debugging */}
-      {/* <TestModal /> */}
     </div>
   );
 };

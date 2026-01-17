@@ -1,7 +1,7 @@
 import React from 'react';
-import { Trash2, Calendar, User, Workflow } from 'lucide-react';
+import { Trash2, User, Workflow, Clock, ChevronRight } from 'lucide-react';
 import { useNavigate } from 'react-router';
-import Loader from '../../../utils/helperComponents/Loader';
+import { motion } from 'framer-motion';
 import { encodeNameAndId } from '../../../utils/helperFunctions/HelperFunctions';
 import { useApiMutation } from '../../../utils/customHooks/apiHooks';
 import { usePostWorkflowsDeleteRequestMutation } from '../../../utils/services/genericService';
@@ -28,148 +28,126 @@ export const WorkflowsTable: React.FC<Props> = ({ workflows = [], activeTab, isL
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
       month: 'short',
       day: 'numeric',
+      year: 'numeric',
       hour: '2-digit',
       minute: '2-digit',
     });
   };
 
-  const handleAction = async (workflow: any) => {
+  const handleAction = async (e: React.MouseEvent, workflow: any) => {
+    e.stopPropagation();
     await handleTrigger({ workflowId: workflow._id });
   };
 
   const handleNavigate = (id: string, name: string) => {
-    console.log(name, id);
     navigate(`/prompt-flow/workflows/local/${encodeNameAndId(name, id)}`);
   };
-  return (
-    <div className='w-full bg-white dark:bg-dark-800 rounded-lg shadow-sm border border-gray-200 dark:border-dark-700'>
-      {/* Table */}
-      <div className='overflow-x-auto'>
-        <table className='w-full'>
-          <thead className='bg-gray-50 dark:bg-dark-900/50'>
-            <tr>
-              <th className='px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-dark-400 uppercase tracking-wider'>
-                Workflow
-              </th>
-              <th className='px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-dark-400 uppercase tracking-wider'>
-                No of steps
-              </th>
-              {activeTab === 'community' && (
-                <th className='px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-dark-400 uppercase tracking-wider'>Role</th>
-              )}
-              <th className='px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-dark-400 uppercase tracking-wider'>Created</th>
-              {activeTab === 'personal' && (
-                <th className='px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-dark-400 uppercase tracking-wider'>
-                  Actions
-                </th>
-              )}
-            </tr>
-          </thead>
-          <tbody className='bg-white dark:bg-dark-800 divide-y divide-gray-200 dark:divide-dark-700'>
-            {isLoading ? (
-              <tr>
-                <td colSpan={4} className='px-6 py-12 text-center'>
-                  <Loader />
-                </td>
-              </tr>
-            ) : (
-              workflows.map((workflow) => (
-                <tr
-                  key={workflow._id}
-                  className={`hover:bg-gray-50 dark:hover:bg-dark-700/50 transition-colors cursor-pointer`}
-                  onClick={() => handleNavigate(workflow._id, workflow.name)}
-                >
-                  {/* Workflow Name & Info */}
-                  <td className='px-6 py-4'>
-                    <div className='flex items-center'>
-                      <div className='flex-shrink-0'>
-                        <div
-                          className={`w-10 h-10 rounded-lg flex items-center justify-center ${
-                            activeTab === 'personal' ? 'bg-blue-100' : 'bg-green-100'
-                          }`}
-                        >
-                          <Workflow className={`w-5 h-5 ${activeTab === 'personal' ? 'text-blue-600' : 'text-green-600'}`} />
-                        </div>
-                      </div>
-                      <div className='ml-4'>
-                        <div className='text-sm font-medium text-gray-900 dark:text-dark-100'>{workflow.name}</div>
-                        <div className='text-sm text-gray-500 dark:text-dark-400 flex items-center mt-1'>
-                          <User className='w-3 h-3 mr-1' />
-                          {workflow.createdBy}
-                          {activeTab === 'community' && (
-                            <span className='ml-2 text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full'>Community</span>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  </td>
 
-                  {/* Components Count */}
-                  <td className='px-6 py-4'>
-                    <div className='flex items-center space-x-2'>
-                      <div className='flex items-center space-x-1'>
-                        <div className='w-2 h-2 bg-blue-500 rounded-full'></div>
-                        <span className='text-sm text-gray-900 dark:text-dark-100'>{workflow?.workflowJson?.nodes?.length} steps</span>
-                      </div>
-                    </div>
-                  </td>
-
-                  {activeTab === 'community' && (
-                    <td className='px-6 py-4'>
-                      <div className='flex items-center text-sm text-gray-900 dark:text-gray-100 capitalize'>{workflow?.role || 'N/A'}</div>
-                    </td>
-                  )}
-                  {/* Created Date */}
-                  <td className='px-6 py-4'>
-                    <div className='flex items-center text-sm text-gray-900 dark:text-dark-100'>
-                      <Calendar className='w-4 h-4 mr-2 text-gray-400 dark:text-dark-400' />
-                      {formatDate(workflow.createdAt)}
-                    </div>
-                    <div className='text-xs text-gray-500 dark:text-dark-400 mt-1'>Updated: {formatDate(workflow.updatedAt)}</div>
-                  </td>
-
-                  {/* Actions */}
-                  {activeTab === 'personal' && (
-                    <td className='px-6 py-4'>
-                      <div className='flex items-center space-x-2'>
-                        {activeTab === 'personal' && (
-                          <>
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleAction(workflow);
-                              }}
-                              className='p-2 text-gray-400 dark:text-dark-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors'
-                              title='Delete Workflow'
-                            >
-                              <Trash2 className='w-4 h-4' />
-                            </button>
-                          </>
-                        )}
-                      </div>
-                    </td>
-                  )}
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+  if (isLoading && workflows.length === 0) {
+    return (
+      <div className='space-y-3'>
+        {[1, 2, 3, 4, 5].map((i) => (
+          <div key={i} className='h-20 bg-gray-100 dark:bg-gray-800 rounded-xl animate-pulse' />
+        ))}
       </div>
+    );
+  }
 
-      {/* Empty State */}
-      {!isLoading && workflows.length === 0 && (
-        <div className='text-center py-12'>
-          <Workflow className='mx-auto h-12 w-12 text-gray-400 dark:text-dark-500' />
-          <h3 className='mt-2 text-sm font-medium text-gray-900 dark:text-dark-100'>
-            No {activeTab === 'personal' ? 'personal' : 'community'} workflows
-          </h3>
-          <p className='mt-1 text-sm text-gray-500 dark:text-dark-400'>
-            {activeTab === 'personal' ? 'Create your first workflow to get started.' : 'No community workflows available yet.'}
+  return (
+    <div className='w-full space-y-3 px-3 mt-3'>
+      {workflows.length === 0 ? (
+        <div className='text-center py-16 bg-gray-50 dark:bg-dark-800/50 rounded-2xl border-2 border-dashed border-gray-200 dark:border-dark-700'>
+          <div className='w-16 h-16 mx-auto bg-gray-100 dark:bg-dark-700 rounded-full flex items-center justify-center mb-4'>
+            <Workflow className='h-8 w-8 text-gray-400 dark:text-dark-400' />
+          </div>
+          <h3 className='text-lg font-semibold text-gray-900 dark:text-dark-100'>No workflows found</h3>
+          <p className='mt-1 text-sm text-gray-500 dark:text-dark-400 max-w-sm mx-auto'>
+            {activeTab === 'personal'
+              ? 'Get started by creating your first workflow above.'
+              : 'Explore community workflows to get inspired.'}
           </p>
         </div>
+      ) : (
+        workflows.map((workflow, index) => (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: index * 0.05 }}
+            key={workflow._id}
+            onClick={() => handleNavigate(workflow._id, workflow.name)}
+            className='group relative flex items-center justify-between p-4 bg-white dark:bg-dark-800 rounded-xl border border-gray-100 dark:border-dark-700 shadow-sm hover:shadow-md hover:border-blue-200 dark:hover:border-blue-900/50 transition-all duration-200 cursor-pointer'
+          >
+            {/* Left: Icon & Info */}
+            <div className='flex items-center gap-4 flex-1'>
+              <div
+                className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 transition-colors ${
+                  activeTab === 'personal'
+                    ? 'bg-blue-50 text-blue-600 group-hover:bg-blue-100 dark:bg-blue-900/20 dark:text-blue-400'
+                    : 'bg-emerald-50 text-emerald-600 group-hover:bg-emerald-100 dark:bg-emerald-900/20 dark:text-emerald-400'
+                }`}
+              >
+                <Workflow className='w-6 h-6' />
+              </div>
+
+              <div className='min-w-0'>
+                {activeTab === 'personal' ? (
+                  <h4 className='text-base font-semibold text-gray-900 dark:text-dark-50 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors'>
+                    {workflow.name}
+                  </h4>
+                ) : (
+                  <h4 className='text-base font-semibold text-gray-900 dark:text-dark-50 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors'>
+                    {workflow.name}
+                  </h4>
+                )}
+                <p className='text-sm text-gray-500 dark:text-gray-400 line-clamp-1 mt-0.5'>
+                  {workflow.description || 'No description available'}
+                </p>
+              </div>
+            </div>
+
+            {/* Right: Meta & Actions */}
+            <div className='flex items-center gap-6'>
+              <div className='flex items-center gap-6 hidden sm:flex'>
+                <div className='text-right'>
+                  <div className='text-sm font-medium text-gray-700 dark:text-dark-200'>
+                    {workflow?.workflowJson?.nodes?.length || 0} Steps
+                  </div>
+                  <div className='text-xs text-gray-400 dark:text-dark-500 flex items-center justify-end gap-1 mt-0.5'>
+                    <User className='w-3 h-3' />
+                    {workflow.createdBy || 'Unknown'}
+                  </div>
+                </div>
+
+                <div className='h-8 w-px bg-gray-200 dark:bg-gray-700'></div>
+
+                <div className='text-right'>
+                  <div className='text-sm font-medium text-gray-700 dark:text-dark-200'>{formatDate(workflow.updatedAt)}</div>
+                  <div className='text-xs text-gray-400 dark:text-dark-500 flex items-center justify-end gap-1 mt-0.5'>
+                    <Clock className='w-3 h-3' />
+                    Updated
+                  </div>
+                </div>
+              </div>
+
+              {activeTab === 'personal' ? (
+                <div className='flex items-center gap-2'>
+                  <button
+                    onClick={(e) => handleAction(e, workflow)}
+                    className='p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors'
+                    title='Delete'
+                  >
+                    <Trash2 className='w-5 h-5' />
+                  </button>
+                  <ChevronRight className='w-5 h-5 text-gray-300 dark:text-dark-600 opacity-0 group-hover:opacity-100 transition-opacity duration-200' />
+                </div>
+              ) : (
+                <ChevronRight className='w-5 h-5 text-gray-300 dark:text-dark-600 opacity-0 group-hover:opacity-100 transition-opacity duration-200' />
+              )}
+            </div>
+          </motion.div>
+        ))
       )}
     </div>
   );

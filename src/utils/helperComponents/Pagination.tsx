@@ -1,4 +1,5 @@
 import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 interface PaginationProps {
   currentPage: number;
@@ -21,6 +22,7 @@ export function Pagination({
   pageSizeOptions = [10, 20, 30],
   showPageSizeSelector = true,
 }: PaginationProps) {
+
   const handlePageChange = (page: number) => {
     if (page >= 1 && page <= totalPages) {
       onPageChange(page);
@@ -58,7 +60,6 @@ export function Pagination({
         pages.push(totalPages);
       }
     }
-
     return pages;
   };
 
@@ -66,91 +67,102 @@ export function Pagination({
   const endItem = totalItems ? Math.min(currentPage * pageSize, totalItems) : 0;
 
   return (
-    <div className='flex items-center justify-between px-4 py-3 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700'>
-      <div className='flex items-center gap-4'>
+    <div className='flex flex-wrap items-center justify-between gap-4 py-4 px-2'>
+      <div className='flex items-center gap-4 text-sm'>
         {totalItems !== undefined && (
-          <div className='text-sm text-gray-700 dark:text-gray-300'>
-            Showing <span className='font-medium'>{startItem}</span> to <span className='font-medium'>{endItem}</span> of{' '}
-            <span className='font-medium'>{totalItems}</span> results
-          </div>
+          <span className='text-gray-500 dark:text-gray-400 font-medium'>
+            Showing <span className='text-gray-900 dark:text-gray-200'>{startItem}</span>-
+            <span className='text-gray-900 dark:text-gray-200'>{endItem}</span> of{' '}
+            <span className='text-gray-900 dark:text-gray-200'>{totalItems}</span>
+          </span>
         )}
 
         {showPageSizeSelector && onPageSizeChange && (
           <div className='flex items-center gap-2'>
-            <label className='text-sm text-gray-700 dark:text-gray-300'>Rows per page:</label>
+            <span className='text-gray-500 dark:text-gray-400'>Rows:</span>
             <select
               value={pageSize}
               onChange={(e) => onPageSizeChange(Number(e.target.value))}
-              className='px-2 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 transition-colors'
+              className='px-2 py-1 text-sm bg-transparent border-b-2 border-gray-200 dark:border-gray-700 font-semibold text-gray-900 dark:text-gray-200 focus:outline-none focus:border-blue-500 transition-colors cursor-pointer'
             >
               {pageSizeOptions.map((option) => (
-                <option key={option} value={option}>
-                  {option}
-                </option>
+                <option key={option} value={option}>{option}</option>
               ))}
             </select>
           </div>
         )}
       </div>
 
-      <div className='flex items-center gap-2'>
-        <button
-          onClick={() => handlePageChange(1)}
-          disabled={currentPage === 1}
-          className='p-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors'
-          aria-label='First page'
-        >
-          <ChevronsLeft className='h-4 w-4' />
-        </button>
+      <div className="flex items-center gap-2 p-1 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700">
 
-        <button
-          onClick={() => handlePageChange(currentPage - 1)}
-          disabled={currentPage === 1}
-          className='p-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors'
-          aria-label='Previous page'
-        >
-          <ChevronLeft className='h-4 w-4' />
-        </button>
+        <div className="flex gap-1 pr-2 border-r border-gray-100 dark:border-gray-700">
+          <NavButton
+            onClick={() => handlePageChange(1)}
+            disabled={currentPage === 1}
+            icon={<ChevronsLeft className='h-4 w-4' />}
+          />
+          <NavButton
+            onClick={() => handlePageChange(currentPage - 1)}
+            disabled={currentPage === 1}
+            icon={<ChevronLeft className='h-4 w-4' />}
+          />
+        </div>
 
         <div className='flex items-center gap-1'>
-          {getPageNumbers()?.map((page, index) => (
-            <div key={index}>
+          {getPageNumbers().map((page, index) => (
+            <div key={index} className="relative">
               {page === '...' ? (
-                <span className='px-3 py-2 text-gray-500 dark:text-gray-400'>...</span>
+                <span className='flex items-center justify-center w-8 h-8 text-gray-400 pb-2'>...</span>
               ) : (
                 <button
                   onClick={() => handlePageChange(page as number)}
-                  className={`min-w-[40px] px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                    currentPage === page
-                      ? 'bg-blue-600 text-white hover:bg-blue-700'
-                      : 'border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
-                  }`}
+                  className={`
+                    relative w-8 h-8 flex items-center justify-center rounded-lg text-sm font-medium transition-all duration-200
+                    ${currentPage === page
+                      ? 'text-white'
+                      : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700/50'
+                    }
+                  `}
                 >
-                  {page}
+                  <span className="relative z-10">{page}</span>
+                  {currentPage === page && (
+                    <motion.div
+                      layoutId="paginationPill"
+                      className="absolute inset-0 bg-gray-900 dark:bg-blue-600 rounded-lg shadow-md"
+                      transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                    />
+                  )}
                 </button>
               )}
             </div>
           ))}
         </div>
 
-        <button
-          onClick={() => handlePageChange(currentPage + 1)}
-          disabled={currentPage === totalPages}
-          className='p-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors'
-          aria-label='Next page'
-        >
-          <ChevronRight className='h-4 w-4' />
-        </button>
+        <div className="flex gap-1 pl-2 border-l border-gray-100 dark:border-gray-700">
+          <NavButton
+            onClick={() => handlePageChange(currentPage + 1)}
+            disabled={currentPage === totalPages}
+            icon={<ChevronRight className='h-4 w-4' />}
+          />
+          <NavButton
+            onClick={() => handlePageChange(totalPages)}
+            disabled={currentPage === totalPages}
+            icon={<ChevronsRight className='h-4 w-4' />}
+          />
+        </div>
 
-        <button
-          onClick={() => handlePageChange(totalPages)}
-          disabled={currentPage === totalPages}
-          className='p-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors'
-          aria-label='Last page'
-        >
-          <ChevronsRight className='h-4 w-4' />
-        </button>
       </div>
     </div>
   );
 }
+
+// Helper Component for Nav Buttons
+const NavButton = ({ onClick, disabled, icon }: any) => (
+  <button
+    onClick={onClick}
+    disabled={disabled}
+    className='p-2 rounded-lg text-gray-500 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-gray-700/50 hover:text-gray-900 dark:hover:text-gray-200 transition-colors'
+  >
+    {icon}
+  </button>
+);

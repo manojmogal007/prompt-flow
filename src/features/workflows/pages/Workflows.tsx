@@ -6,14 +6,14 @@ import { WorkflowsTable } from '../components/WorkflowsTable';
 import { TabSwitcher } from '../components/TabSwitcher';
 import { Searchbar } from '../../../utils/helperComponents/Searchbar';
 import { debounce } from 'lodash';
-import { useNavigate, useSearchParams } from 'react-router';
+import { useSearchParams } from 'react-router';
 import Button from '../../../utils/helperComponents/Button';
 import { Plus } from 'lucide-react';
 import { Pagination } from '../../../utils/helperComponents/Pagination';
 import DetailsTaker from '../../flowCrafter/components/DetailsTaker';
 import { Modal } from '../../../utils/helperComponents/Modal';
-import { encodeNameAndId } from '../../../utils/helperFunctions/HelperFunctions';
 import { useToast } from '../../../hooks/useToast';
+import { useSettings } from '../../../hooks/useSettings';
 const inputNode = {
   id: 'cb02b245-7d6c-4925-96f2-c30328d972ba',
   type: 'inputNode',
@@ -38,8 +38,9 @@ type TabType = 'personal' | 'community';
 
 export const Workflows: React.FC = () => {
   const { user } = useAuth();
+  const { isWorkflowLimitReached, refetchSettings } = useSettings();
   const { showToast } = useToast();
-  const navigate = useNavigate();
+  // const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const [open, setOpen] = useState(false);
   const [formData, setFormData] = useState<Record<string, any>>({});
@@ -48,27 +49,28 @@ export const Workflows: React.FC = () => {
   const [page, setPage] = React.useState(1);
   const [rowsPerpage] = React.useState(10);
   const searchText = searchParams.get('search') || '';
-
+  console.log(user);
   // queries
   const ownerWorkflows = useApiQuery(
     useGetWorkflowsRequestQuery,
     `/workflow/getWorkflowsByCreatorId?creatorId=${user?.id}&search=${searchText}`,
-    { skipQuery: !Boolean(user?.id && activeTab === 'personal') },
+    { skipQuery: !Boolean(user?.id) },
   );
 
   const contributionWorkflows = useApiQuery(
     useGetWorkflowsRequestQuery,
     `/workflow/getContributorWorkflows?contributorId=${user?.id}&search=${searchText}`,
-    { skipQuery: !Boolean(user?.id && activeTab !== 'personal') },
+    { skipQuery: !Boolean(user?.id) },
   );
 
   const saveWorkflow = useApiMutation(usePostWorkflowRequestMutation, '/workflow/createWorkflow', {
     onSuccess: (data: any) => {
-      showToast(data?.message, 'success');
-      navigate(`/prompt-flow/workflows/${encodeNameAndId(data?.workflow?.name, data?.workflow?._id)}`);
+      showToast(data?.message || 'Workflow created successfully', 'success');
+      refetchSettings();
+      // navigate(`/prompt-flow/workflows/local/${encodeNameAndId(data?.workflow?.name, data?.workflow?._id)}`);
     },
-    onError: () => {
-      showToast('Something went wrong', 'error');
+    onError: (error: any) => {
+      showToast(error.data?.message || 'Something went wrong', 'error');
     },
   });
 
@@ -96,7 +98,6 @@ export const Workflows: React.FC = () => {
     handleSearch(val);
   };
 
-  // ✅ update tab in URL
   const handleTabChange = (tab: TabType) => {
     setActiveTab(tab);
     setTempSearchText('');
@@ -116,12 +117,13 @@ export const Workflows: React.FC = () => {
     setFormData((prev) => ({ ...prev, [key]: val }));
   };
   const payloadValidation = useMemo(() => {
+    if (isWorkflowLimitReached) return true;
     if (formData.name) return false;
     return true;
-  }, [formData]);
+  }, [formData, isWorkflowLimitReached]);
 
   const triggerSaveWorkflow = async () => {
-    if (payloadValidation || saveWorkflow?.isLoading) return;
+    if (payloadValidation || saveWorkflow?.isLoading || isWorkflowLimitReached) return;
     const payload = {
       name: formData.name,
       description: formData.description,
@@ -173,7 +175,9 @@ export const Workflows: React.FC = () => {
         </div>
       </div>
       <WorkflowsTable workflows={currentWorkflows} activeTab={activeTab} isLoading={isLoading} />
-      <Pagination currentPage={page} totalPages={totalPages} onPageChange={setPage} pageSize={rowsPerpage} totalItems={totalWorkflows} />
+      <div className='px-1'>
+        <Pagination currentPage={page} totalPages={totalPages} onPageChange={setPage} pageSize={rowsPerpage} totalItems={totalWorkflows} />
+      </div>
     </div>
   );
 };

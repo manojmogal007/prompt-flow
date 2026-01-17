@@ -40,7 +40,7 @@ const genericService = baseApi.injectEndpoints({
       query: (getQuery) => ({
         url: getQuery,
       }),
-      providesTags: [{ type: 'workflow' } as any],
+      providesTags: [{ type: 'workflow' } as any, { type: 'create-workflow' } as any],
     }),
     postWorkflowsRequest: builder.mutation({
       query: (body) => ({
@@ -100,7 +100,7 @@ const genericService = baseApi.injectEndpoints({
         method: 'POST',
         body: body?.reqBody,
       }),
-      // invalidatesTags: [{ type: 'workflow' } as any],
+      invalidatesTags: [{ type: 'create-workflow' } as any],
     }),
     postWorkflowDeleteRequest: builder.mutation({
       query: (body) => ({
@@ -108,7 +108,6 @@ const genericService = baseApi.injectEndpoints({
         method: 'POST',
         body: body?.reqBody,
       }),
-      // invalidatesTags: [{ type: 'workflow' } as any],
     }),
     updateWorkflowRequest: builder.mutation({
       query: (body) => ({
@@ -117,6 +116,58 @@ const genericService = baseApi.injectEndpoints({
         body: body?.reqBody,
       }),
       // invalidatesTags: [{ type: 'workflow' } as any],
+    }),
+
+    // Workflow Execution endpoints
+    postExecutionRequest: builder.mutation({
+      query: (body) => ({
+        url: body.path,
+        method: 'POST',
+        body: body?.reqBody,
+      }),
+      invalidatesTags: [{ type: 'execution' } as any],
+    }),
+    getExecutionRequest: builder.query({
+      query: (getQuery) => ({
+        url: getQuery,
+      }),
+      providesTags: [{ type: 'execution' } as any],
+    }),
+
+    // Admin Settings endpoints
+    getAllUsersSettingsRequest: builder.query({
+      query: (getQuery) => ({
+        url: getQuery,
+      }),
+      providesTags: [{ type: 'settings' } as any],
+    }),
+    getLoggedInUserSettingsRequest: builder.query({
+      query: (getQuery) => ({
+        url: getQuery,
+      }),
+      providesTags: [{ type: 'fetch-settings' } as any],
+    }),
+    getUserSettingsRequest: builder.query({
+      query: (getQuery) => ({
+        url: getQuery,
+      }),
+      providesTags: [{ type: 'settings' } as any],
+    }),
+    updateSettingsRequest: builder.mutation({
+      query: (body) => ({
+        url: body.path,
+        method: 'PUT',
+        body: body?.reqBody,
+      }),
+      invalidatesTags: [{ type: 'settings' } as any],
+    }),
+    blockUserRequest: builder.mutation({
+      query: (body) => ({
+        url: body.path,
+        method: 'POST',
+        body: body?.reqBody,
+      }),
+      invalidatesTags: [{ type: 'settings' } as any],
     }),
   }),
 });
@@ -138,4 +189,11 @@ export const {
   usePostWorkflowRequestMutation,
   usePostWorkflowDeleteRequestMutation,
   useUpdateWorkflowRequestMutation,
+  usePostExecutionRequestMutation,
+  useGetExecutionRequestQuery,
+  useGetLoggedInUserSettingsRequestQuery,
+  useGetAllUsersSettingsRequestQuery,
+  useGetUserSettingsRequestQuery,
+  useUpdateSettingsRequestMutation,
+  useBlockUserRequestMutation,
 } = genericService;

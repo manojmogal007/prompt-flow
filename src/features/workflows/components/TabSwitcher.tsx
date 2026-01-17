@@ -1,5 +1,6 @@
 import React from 'react';
 import { Users, User } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 type TabType = 'personal' | 'community';
 interface Props {
@@ -20,23 +21,41 @@ export const TabSwitcher: React.FC<Props> = ({ activeTab, setActiveTab }) => {
       icon: Users,
     },
   ];
+
   return (
-    <div className='p-0.5 pb-0.75 border border-gray-200 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-800'>
-      <div className='flex space-x-1'>
-        {tabsconfig?.map((tab) => (
+    <div className='relative inline-flex p-1 bg-gray-100 dark:bg-gray-800 rounded-xl shadow-inner'>
+      {tabsconfig.map((tab) => {
+        const isActive = activeTab === tab.value;
+        return (
           <button
+            key={tab.value}
             onClick={() => setActiveTab(tab.value as TabType)}
-            className={`flex items-center space-x-2 px-4 py-1 rounded-lg font-medium text-sm transition-all duration-200 ${
-              activeTab === tab.value
-                ? 'bg-white dark:bg-gray-700 text-blue-600 dark:text-blue-400 shadow-sm border border-gray-200 dark:border-gray-600'
-                : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700'
-            }`}
+            className={`
+              relative z-10 flex items-center space-x-2 px-5 py-2 rounded-lg 
+              font-medium text-sm transition-colors duration-200 outline-none
+              ${isActive
+                ? 'text-gray-900 dark:text-white'
+                : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
+              }
+            `}
           >
-            <tab.icon className='w-4 h-4' />
-            <span>{tab.label}</span>
+            <tab.icon className={`w-4 h-4 relative z-10 ${isActive ? 'stroke-[2.5px]' : 'stroke-2'}`} />
+            <span className="relative z-10">{tab.label}</span>
+
+            {isActive && (
+              <motion.div
+                layoutId="activeTabPill"
+                className="absolute inset-0 bg-white dark:bg-gray-700 rounded-lg shadow-sm border border-black/5 dark:border-white/5"
+                transition={{
+                  type: "spring",
+                  stiffness: 400,
+                  damping: 30
+                }}
+              />
+            )}
           </button>
-        ))}
-      </div>
+        );
+      })}
     </div>
   );
 };

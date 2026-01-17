@@ -231,7 +231,7 @@ const CollaborativeFlowCrafter: React.FC = () => {
     decisionNode: DecisionNodeWrapper,
     dataProcessingNode: DataProcessingNodeWrapper,
   };
-
+  console.log('workflowCreatorId', workflowCreatorId);
   return (
     <div className={`w-full bg-slate-50 dark:bg-dark-900 flex flex-col h-[calc(100vh-60px)]`}>
       <ModernHeader
@@ -241,7 +241,7 @@ const CollaborativeFlowCrafter: React.FC = () => {
         formData={localFormData}
         handleFormDataChange={handleFormDataChange}
         collaborators={[]}
-        workflowCreatorId={workflowCreatorId}
+        // workflowCreatorId={workflowCreatorId}
       />
 
       <div className='flex-1 flex overflow-hidden'>

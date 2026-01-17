@@ -2,6 +2,8 @@ import { type FC } from 'react';
 import { Input } from '../../../utils/helperComponents/Input';
 import Button from '../../../utils/helperComponents/Button';
 import { SaveAll } from 'lucide-react';
+import { Infobar } from '../../../utils/helperComponents/Infobar';
+import { useSettings } from '../../../hooks/useSettings';
 
 interface Props {
   name: string;
@@ -13,8 +15,16 @@ interface Props {
 }
 
 const DetailsTaker: FC<Props> = ({ name, description, handleChange, handleSave, handleClose, validation }) => {
+  const { isWorkflowLimitReached } = useSettings();
   return (
     <div className='space-y-4'>
+      {isWorkflowLimitReached && (
+        <Infobar
+          title={`Workflow Limit Reached`}
+          type='error'
+          description='You’ve reached the maximum number of workflows. Upgrade your plan to create more.'
+        />
+      )}
       <label className='font-semibold text-sm text-slate-800 dark:text-dark-100'>Workflow name*</label>
       <Input value={name} handleInputChange={handleChange} placeHolder='Workflow name' valKey='name' size='md' />
       {/* <Input value={description} handleInputChange={handleChange} placeHolder='Workflow Description' valKey='description' size='md' /> */}

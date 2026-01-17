@@ -2,6 +2,7 @@ import { createBrowserRouter, Navigate } from "react-router";
 import App from "../App";
 import { authRoutes } from "./authRoutes";
 import { appRoutes } from "./appRoutes";
+import { adminRoutes } from "./adminRoutes";
 
 export const router = createBrowserRouter([
   {
@@ -15,9 +16,10 @@ export const router = createBrowserRouter([
       authRoutes,
       {
         index: true,
-        element: <Navigate to="/prompt-flow/workflows" replace />, 
+        element: <Navigate to="/prompt-flow/workflows" replace />,
       },
       appRoutes,
+      adminRoutes,
     ],
   },
 ]);
