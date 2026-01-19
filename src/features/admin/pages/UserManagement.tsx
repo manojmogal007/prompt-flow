@@ -14,6 +14,7 @@ export const UserManagement: React.FC = () => {
   const [page, setPage] = useState(1);
   const [limit] = useState(12);
   const [search, setSearch] = useState('');
+  const [tempSearch, setTempSearch] = useState<string>('');
 
   const { data, isLoading } = useApiQuery(
     useGetAllUsersSettingsRequestQuery,
@@ -58,9 +59,9 @@ export const UserManagement: React.FC = () => {
       <div className='flex justify-between items-center mb-6'>
         <div className='w-96'>
           <Searchbar
-            value={search}
+            value={tempSearch}
             handleInput={(val: string) => {
-              setSearch(val);
+              setTempSearch(val);
               handleSearch(val);
             }}
             placeholder='Search users...'

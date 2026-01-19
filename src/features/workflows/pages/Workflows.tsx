@@ -46,20 +46,20 @@ export const Workflows: React.FC = () => {
   const [formData, setFormData] = useState<Record<string, any>>({});
   const [activeTab, setActiveTab] = useState<TabType>((searchParams.get('tab') as TabType) || 'personal');
   const [tempSearchText, setTempSearchText] = useState(searchParams.get('search') || '');
-  const [page, setPage] = React.useState(1);
+  // const [page, setPage] = React.useState(1);
   const [rowsPerpage] = React.useState(10);
   const searchText = searchParams.get('search') || '';
-  console.log(user);
+  const page = Number(searchParams.get('page')) || 1;
   // queries
   const ownerWorkflows = useApiQuery(
     useGetWorkflowsRequestQuery,
-    `/workflow/getWorkflowsByCreatorId?creatorId=${user?.id}&search=${searchText}`,
+    `/workflow/getWorkflowsByCreatorId?creatorId=${user?.id}&search=${searchText}&page=${page}&limit=${rowsPerpage}`,
     { skipQuery: !Boolean(user?.id) },
   );
 
   const contributionWorkflows = useApiQuery(
     useGetWorkflowsRequestQuery,
-    `/workflow/getContributorWorkflows?contributorId=${user?.id}&search=${searchText}`,
+    `/workflow/getContributorWorkflows?contributorId=${user?.id}&search=${searchText}&page=${page}&limit=${rowsPerpage}`,
     { skipQuery: !Boolean(user?.id) },
   );
 
@@ -76,8 +76,6 @@ export const Workflows: React.FC = () => {
 
   const ownerWorkflowsList = ownerWorkflows?.data?.workflows || [];
   const contributionWorkflowsList = contributionWorkflows?.data?.workflows || [];
-  const totalWorkflows = activeTab === 'personal' ? ownerWorkflowsList.length : contributionWorkflowsList.length;
-  const totalPages = Math.ceil(totalWorkflows / rowsPerpage);
   const handleSearch = useCallback(
     debounce((val: string) => {
       setSearchParams((prev) => {
@@ -105,6 +103,7 @@ export const Workflows: React.FC = () => {
       const params = new URLSearchParams(prev);
       params.set('tab', tab);
       params.delete('search');
+      params.set('page', '1');
       return params;
     });
   };
@@ -138,12 +137,23 @@ export const Workflows: React.FC = () => {
     setFormData({});
     setOpen(false);
   };
+
+  const handlePageChange = (page: number) => {
+    // setPage(page);
+    setSearchParams((prev) => {
+      const params = new URLSearchParams(prev);
+      params.set('page', page.toString());
+      return params;
+    });
+  };
   const currentWorkflows = activeTab === 'personal' ? ownerWorkflowsList : contributionWorkflowsList;
 
   const isLoading =
     activeTab === 'personal'
       ? ownerWorkflows.isLoading || ownerWorkflows.isFetching
       : contributionWorkflows.isLoading || contributionWorkflows.isFetching;
+  const totalCount = activeTab === 'personal' ? ownerWorkflows?.data?.total || 0 : contributionWorkflows?.data?.total || 0;
+  const totalPages = activeTab === 'personal' ? Math.ceil(totalCount / rowsPerpage) : Math.ceil(totalCount / rowsPerpage);
   return (
     <div className='w-full bg-white dark:bg-dark-900'>
       <Modal isOpen={open} onClose={handleToggle}>
@@ -176,7 +186,13 @@ export const Workflows: React.FC = () => {
       </div>
       <WorkflowsTable workflows={currentWorkflows} activeTab={activeTab} isLoading={isLoading} />
       <div className='px-1'>
-        <Pagination currentPage={page} totalPages={totalPages} onPageChange={setPage} pageSize={rowsPerpage} totalItems={totalWorkflows} />
+        <Pagination
+          currentPage={page}
+          totalPages={totalPages}
+          onPageChange={handlePageChange}
+          pageSize={rowsPerpage}
+          totalItems={totalCount}
+        />
       </div>
     </div>
   );

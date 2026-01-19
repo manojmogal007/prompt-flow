@@ -30,3 +30,16 @@ export const decodeNameAndId = (token: any): { name: string; id?: string } => {
   const id = encId ? fromB64Url(encId) : undefined;
   return { name, id };
 };
+
+export const formatDate = (dateString: string, time = false) => {
+  if (!time) return new Date(dateString).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  return new Date(dateString).toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+};
+
+export const formatTime = (dateString: string) => new Date(dateString).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });

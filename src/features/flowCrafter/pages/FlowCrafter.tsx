@@ -136,7 +136,7 @@ const CollaborativeFlowCrafter: React.FC = () => {
 
   const handleExecute = async () => {
     if (isExecutionLimitReached) {
-      showToast('Execution limit reached', 'error', 'You have reached your execution limit. Please upgrade your plan.', 5000);
+      showToast('Execution limit reached', 'warning', 'You have reached your execution limit. Please upgrade your plan.', 5000);
       return;
     }
     // 1. Find Input Node text
@@ -631,7 +631,7 @@ const CollaborativeFlowCrafter: React.FC = () => {
             onDrop={onDrop}
             onDragOver={onDragOver}
             onNodeClick={handleNodeClick}
-            onPointerMove={() => {}}
+            onPointerMove={() => { }}
             onPointerLeave={handlePointerLeave}
             onCursorMove={handleCursorMove}
             nodeTypes={nodeTypes}

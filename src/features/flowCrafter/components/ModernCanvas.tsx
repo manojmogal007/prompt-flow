@@ -4,6 +4,7 @@ import '@xyflow/react/dist/style.css';
 import { ZoomIn, ZoomOut, RotateCcw, Maximize2, Minimize2, Grid3X3, Layers, Zap } from 'lucide-react';
 import { type BackgroundVariant } from '@xyflow/react';
 import { Cursor } from './Cursor';
+import { useParams } from 'react-router';
 
 interface ModernCanvasProps {
   nodes: any[];
@@ -36,6 +37,7 @@ export const ModernCanvas: React.FC<ModernCanvasProps> = ({
   nodeTypes,
   collaborators = [],
 }) => {
+  const { method } = useParams();
   const reactFlowWrapper = useRef<HTMLDivElement | null>(null);
   // const { screenToFlowPosition } = useReactFlow();
   const [showGrid, setShowGrid] = React.useState(true);
@@ -67,6 +69,7 @@ export const ModernCanvas: React.FC<ModernCanvasProps> = ({
     <div
       ref={reactFlowWrapper}
       onPointerMove={(e) => {
+        if (method === 'local') return
         if (reactFlowWrapper.current && onCursorMove) {
           const { left, top } = reactFlowWrapper.current.getBoundingClientRect();
           onCursorMove(Math.round(e.clientX - left), Math.round(e.clientY - top));
@@ -80,9 +83,8 @@ export const ModernCanvas: React.FC<ModernCanvasProps> = ({
           onPointerLeave?.();
         }
       }}
-      className={`relative w-full h-full bg-gradient-to-br from-slate-50 to-white dark:from-dark-900 dark:to-dark-800 ${
-        isFullscreen ? 'fixed inset-0 z-50' : ''
-      }`}
+      className={`relative w-full h-full bg-gradient-to-br from-slate-50 to-white dark:from-dark-900 dark:to-dark-800 ${isFullscreen ? 'fixed inset-0 z-50' : ''
+        }`}
     >
       {/* Canvas Header */}
       <div className='absolute top-4 left-4 right-4 z-10 flex items-center justify-between'>
@@ -127,11 +129,10 @@ export const ModernCanvas: React.FC<ModernCanvasProps> = ({
             <div className='flex items-center divide-x divide-slate-200 dark:divide-dark-700'>
               <button
                 onClick={() => setShowGrid(!showGrid)}
-                className={`p-2 transition-colors ${
-                  showGrid
-                    ? 'text-blue-600 bg-blue-50 dark:bg-blue-900/30'
-                    : 'text-slate-600 dark:text-dark-400 hover:bg-slate-50 dark:hover:bg-dark-700'
-                }`}
+                className={`p-2 transition-colors ${showGrid
+                  ? 'text-blue-600 bg-blue-50 dark:bg-blue-900/30'
+                  : 'text-slate-600 dark:text-dark-400 hover:bg-slate-50 dark:hover:bg-dark-700'
+                  }`}
                 title='Toggle Grid'
               >
                 <Grid3X3 className='w-4 h-4' />
@@ -139,11 +140,10 @@ export const ModernCanvas: React.FC<ModernCanvasProps> = ({
 
               <button
                 onClick={() => setShowMinimap(!showMinimap)}
-                className={`p-2 transition-colors ${
-                  showMinimap
-                    ? 'text-blue-600 bg-blue-50 dark:bg-blue-900/30'
-                    : 'text-slate-600 dark:text-dark-400 hover:bg-slate-50 dark:hover:bg-dark-700'
-                }`}
+                className={`p-2 transition-colors ${showMinimap
+                  ? 'text-blue-600 bg-blue-50 dark:bg-blue-900/30'
+                  : 'text-slate-600 dark:text-dark-400 hover:bg-slate-50 dark:hover:bg-dark-700'
+                  }`}
                 title='Toggle Minimap'
               >
                 <Layers className='w-4 h-4' />

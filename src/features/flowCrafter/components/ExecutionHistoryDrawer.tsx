@@ -1,8 +1,10 @@
-import React from 'react';
-import { X, Clock, CheckCircle2, AlertCircle, Loader2, ChevronRight } from 'lucide-react';
+import React, { useState } from 'react';
+import { X, Clock, CheckCircle2, AlertCircle, Loader2, ChevronRight, User } from 'lucide-react';
 import { useGetExecutionRequestQuery } from '../../../utils/services/genericService';
 import { useApiQuery } from '../../../utils/customHooks/apiHooks';
 import { useAuth } from '../../../auth/useAuth';
+import { formatDate } from '../../../utils/helperFunctions/HelperFunctions';
+import { Pagination } from '../../../utils/helperComponents/Pagination';
 
 interface ExecutionHistoryDrawerProps {
   isOpen: boolean;
@@ -13,18 +15,24 @@ interface ExecutionHistoryDrawerProps {
 
 export const ExecutionHistoryDrawer: React.FC<ExecutionHistoryDrawerProps> = ({ isOpen, onClose, onSelectExecution, workflowId }) => {
   const { user } = useAuth();
+  const [page, setPage] = useState(1);
+  const [rowsPerPage] = useState(10);
 
   // Fetch execution history
   const historyQuery = useApiQuery(
     useGetExecutionRequestQuery,
-    `/execution/executions?userId=${user?.id}&limit=20${workflowId ? `&workflowId=${workflowId}` : ''}`,
+    `/execution/executions?userId=${user?.id}&limit=${rowsPerPage}&page=${page}${workflowId ? `&workflowId=${workflowId}` : ''}`,
     {
       skipQuery: !user?.id || !isOpen,
     },
   );
 
-  const executions = (historyQuery.data as any)?.executions || [];
+  const data = historyQuery.data as any;
+  const executions = data?.executions || [];
+  const pagination = data?.pagination || { page: 1, pages: 1, total: 0 };
   const isLoading = historyQuery.isLoading;
+
+  const handlePageChange = (newPage: number) => setPage(newPage);
 
   if (!isOpen) return null;
 
@@ -34,7 +42,7 @@ export const ExecutionHistoryDrawer: React.FC<ExecutionHistoryDrawerProps> = ({ 
       <div className='absolute inset-0 bg-black/20 backdrop-blur-sm transition-opacity' onClick={onClose} />
 
       {/* Drawer */}
-      <div className='relative w-full max-w-md bg-white dark:bg-dark-800 shadow-2xl h-full flex flex-col border-l border-gray-200 dark:border-dark-700 transform transition-transform duration-300 ease-in-out'>
+      <div className='relative w-full max-w-[600px] bg-white dark:bg-dark-800 shadow-2xl h-full flex flex-col border-l border-gray-200 dark:border-dark-700 transform transition-transform duration-300 ease-in-out'>
         {/* Header */}
         <div className='flex items-center justify-between p-4 border-b border-gray-200 dark:border-dark-700'>
           <div className='flex items-center gap-2'>
@@ -82,7 +90,7 @@ export const ExecutionHistoryDrawer: React.FC<ExecutionHistoryDrawerProps> = ({ 
                       {execution.status}
                     </span>
                   </div>
-                  <span className='text-xs text-gray-400 font-mono'>{new Date(execution.createdAt).toLocaleDateString()}</span>
+                  <span className='text-xs text-gray-400 font-mono'>{formatDate(execution.createdAt, true)}</span>
                 </div>
 
                 <div className='mb-1'>
@@ -100,7 +108,11 @@ export const ExecutionHistoryDrawer: React.FC<ExecutionHistoryDrawerProps> = ({ 
                 </div>
 
                 <div className='mt-2 text-xs text-gray-400 flex gap-3'>
-                  <span>{new Date(execution.createdAt).toLocaleTimeString()}</span>
+                  {/* <span>{formatTime(execution.createdAt)}</span> */}
+                  <span className='flex items-center'>
+                    <User className='w-3 h-3 text-gray-400 mr-1' />
+                    Executed by {execution?.executedBy || 'Unknown'}
+                  </span>
                   {execution.executionTime && (
                     <span className='flex items-center'>
                       <Clock className='w-3 h-3 text-gray-400 mr-1' /> {(execution.executionTime / 1000).toFixed(1)}s
@@ -109,6 +121,17 @@ export const ExecutionHistoryDrawer: React.FC<ExecutionHistoryDrawerProps> = ({ 
                 </div>
               </button>
             ))
+          )}
+          {pagination.pages > 1 && (
+            <div className='mt-4 pb-2'>
+              <Pagination
+                currentPage={page}
+                totalPages={pagination.pages}
+                onPageChange={handlePageChange}
+                pageSize={rowsPerPage}
+                totalItems={pagination.total}
+              />
+            </div>
           )}
         </div>
       </div>

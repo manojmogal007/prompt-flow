@@ -46,8 +46,13 @@ export const SettingsProvider: FC<{ children: React.ReactNode }> = ({ children }
   }, [settings, isUnlimited]);
 
   const isLiveRoomLimitReached = useMemo(() => {
+    // return true;
     return isUnlimited ? false : settings?.liveRoomLimit && settings?.liveRoomUsage >= settings?.liveRoomLimit;
   }, [settings, isUnlimited]);
+
+  const isLiveRoomsEnabled = useMemo(() => {
+    return isUnlimited ? true : settings?.isLiveRoomsEnabled || false;
+  }, [settings]);
 
   const handleSettings = (settings: any) => {
     setSettings(settings);
@@ -60,6 +65,7 @@ export const SettingsProvider: FC<{ children: React.ReactNode }> = ({ children }
     isInviteLimitReached,
     isExecutionLimitReached,
     isLiveRoomLimitReached,
+    isLiveRoomsEnabled,
   };
   return <SettingsContext.Provider value={settingsConfig}>{children}</SettingsContext.Provider>;
 };

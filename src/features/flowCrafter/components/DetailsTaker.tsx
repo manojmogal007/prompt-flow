@@ -21,7 +21,7 @@ const DetailsTaker: FC<Props> = ({ name, description, handleChange, handleSave, 
       {isWorkflowLimitReached && (
         <Infobar
           title={`Workflow Limit Reached`}
-          type='error'
+          type='warning'
           description='You’ve reached the maximum number of workflows. Upgrade your plan to create more.'
         />
       )}

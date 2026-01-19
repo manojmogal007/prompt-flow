@@ -72,10 +72,11 @@ export const UserDetails: React.FC = () => {
   const { id: userId } = decodeNameAndId(encodedParams || '');
   const navigate = useNavigate();
   const { showToast } = useToast();
-  const { isSuperAdmin, isAdmin } = useSettings();
+  const { isSuperAdmin, isAdmin, refetchSettings } = useSettings();
   const {
     user: { id },
   } = useAuth();
+  const [isResetting, setIsResetting] = useState(false);
 
   // API Hooks
   const { data, isLoading } = useApiQuery(useGetUserSettingsRequestQuery, `/settings/getUserSettings?userId=${userId}`);
@@ -85,6 +86,8 @@ export const UserDetails: React.FC = () => {
     {
       onSuccess: (data: any) => {
         showToast(data?.message, 'success');
+        refetchSettings();
+        setIsResetting(false);
       },
       onError: (error: any) => {
         showToast(error?.data?.message, 'error');
@@ -116,17 +119,6 @@ export const UserDetails: React.FC = () => {
     }
   }, [data]);
 
-  const user = data?.user;
-  const settings = data?.settings;
-  const isUserSuperAdmin = data?.settings?.isSuperAdmin || false;
-  const isBlocked = data?.settings?.isBlocked || false;
-  const disableEdit = isBlocked ? isBlocked : isSuperAdmin ? false : isAdmin && isUserSuperAdmin ? true : isAdmin ? false : false;
-  const enableBlockFeature = isSuperAdmin && user?._id !== id;
-  //   console.log(isBlocked);
-  //   console.log(isSuperAdmin);
-  //   console.log(isAdmin && isUserSuperAdmin, isAdmin, isUserSuperAdmin);
-  //   console.log(disableEdit);
-
   const handleSave = async () => {
     if (isUpdating) return;
     await updateSettings({ ...formData });
@@ -155,15 +147,23 @@ export const UserDetails: React.FC = () => {
     });
   };
 
-  //   const resetPlan = () => {
-  //     setFormData({
-  //       ...PLANS_CONFIG?.[data?.settings?.plan],
-  //     });
-  //   };
+  const resetPlan = async () => {
+    if (isResetting || isUpdating) return;
+    setIsResetting(true);
+    if (isUpdating) return;
+    await updateSettings({ ...formData, ...PLANS_CONFIG?.[data?.settings?.plan as PlanKey] });
+  };
 
   const handleChanges = (value: any, key: string) => {
     setFormData((prev: any) => ({ ...prev, [key]: value }));
   };
+
+  const user = data?.user;
+  const settings = data?.settings;
+  const isUserSuperAdmin = data?.settings?.isSuperAdmin || false;
+  const isBlocked = data?.settings?.isBlocked || false;
+  const disableEdit = isBlocked ? isBlocked : isSuperAdmin ? false : isAdmin && isUserSuperAdmin ? true : isAdmin ? false : false;
+  const enableBlockFeature = isSuperAdmin && user?._id !== id;
 
   const featureConfig: any = [
     {
@@ -226,7 +226,7 @@ export const UserDetails: React.FC = () => {
   ];
 
   const accessibleFeatures = isSuperAdmin ? featureConfig : featureConfig.filter((feature: any) => feature.adminAccess) || [];
-  console.log(user?._id, id);
+
   if (isLoading)
     return (
       <div className='h-screen flex items-center justify-center'>
@@ -244,7 +244,19 @@ export const UserDetails: React.FC = () => {
           <ArrowLeft size={18} /> <span className='font-medium'>Back to Users</span>
         </button>
         <div className='flex gap-3'>
-          <Button label={isUpdating ? 'Saving...' : 'Save Changes'} icon={Save} triggerClick={handleSave} disabled={isUpdating} />
+          <Button
+            label={isUpdating && isResetting ? 'Resetting Plan...' : 'Reset Plan'}
+            icon={Save}
+            triggerClick={resetPlan}
+            disabled={isUpdating && isResetting}
+            color='gray'
+          />
+          <Button
+            label={isUpdating && !isResetting ? 'Saving...' : 'Save Changes'}
+            icon={Save}
+            triggerClick={handleSave}
+            disabled={isUpdating && !isResetting}
+          />
         </div>
       </div>
 

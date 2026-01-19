@@ -1,17 +1,20 @@
-import { LogOut, Sun, Moon, Shield } from 'lucide-react';
+import { LogOut, Sun, Moon, Shield, BarChart2 } from 'lucide-react';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useAuth } from '../../auth/useAuth';
 import { useLocation, useNavigate } from 'react-router';
 import iconImage from '../../../assets/app_icon.png';
 import { motion } from 'framer-motion';
 import { useSettings } from '../../hooks/useSettings';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
+import { UsageAnalyticsModal } from './UsageAnalyticsModal';
 
 function Navbar() {
   const { theme, toggleTheme } = useTheme();
   const { logout, user } = useAuth();
   const navigate = useNavigate();
-  const { isSuperAdmin, isAdmin, plan } = useSettings();
+  const { isSuperAdmin, isAdmin, plan, isUnlimited } = useSettings();
+  const [isAnalyticsOpen, setIsAnalyticsOpen] = useState(false);
+
   const location = useLocation();
   const enableAdminFeatures = isSuperAdmin || isAdmin;
   const isAdminPath = useMemo(() => {
@@ -61,11 +64,10 @@ function Navbar() {
           {enableAdminFeatures && (
             <button
               onClick={() => navigate(isAdminPath ? '/prompt-flow/workflows' : '/prompt-flow/admin/users')}
-              className={`flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-semibold transition-colors ${
-                isAdminPath
-                  ? 'bg-green-50 dark:bg-green-900/30 text-green-600 dark:text-green-400 hover:bg-green-100 dark:hover:bg-green-900/50'
-                  : 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/50'
-              } `}
+              className={`flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-semibold transition-colors ${isAdminPath
+                ? 'bg-green-50 dark:bg-green-900/30 text-green-600 dark:text-green-400 hover:bg-green-100 dark:hover:bg-green-900/50'
+                : 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/50'
+                } `}
             >
               <Shield className='w-4 h-4' />
               {isAdminPath ? 'User' : 'Admin'}
@@ -77,7 +79,9 @@ function Navbar() {
                 <p className='text-sm font-semibold text-gray-800 dark:text-gray-100 leading-none'>
                   {user.firstName} {user.lastName}
                 </p>
-                <p className='text-xs text-gray-500 dark:text-gray-400 mt-1'>{plan?.slice(0, 1)?.toUpperCase() + plan?.slice(1)} Plan</p>
+                <p className='text-xs text-gray-500 dark:text-gray-400 mt-1'>
+                  {isUnlimited ? 'Unlimited' : plan?.slice(0, 1)?.toUpperCase() + plan?.slice(1)} Plan
+                </p>
               </div>
               <div className='w-9 h-9 rounded-full bg-gradient-to-tr from-blue-500 to-indigo-600 p-[2px]'>
                 <div className='w-full h-full rounded-full bg-white dark:bg-gray-900 flex items-center justify-center'>
@@ -88,6 +92,14 @@ function Navbar() {
               </div>
             </div>
           )}
+
+          <button
+            onClick={() => setIsAnalyticsOpen(true)}
+            className='p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-200 text-gray-600 dark:text-gray-300'
+            aria-label='View Usage Analytics'
+          >
+            <BarChart2 className='w-5 h-5 text-gray-600 dark:text-gray-400' />
+          </button>
 
           <button
             onClick={toggleTheme}
@@ -116,6 +128,8 @@ function Navbar() {
           </button>
         </div>
       </motion.div>
+
+      <UsageAnalyticsModal isOpen={isAnalyticsOpen} onClose={() => setIsAnalyticsOpen(false)} />
     </div>
   );
 }

@@ -169,6 +169,13 @@ const genericService = baseApi.injectEndpoints({
       }),
       invalidatesTags: [{ type: 'settings' } as any],
     }),
+    postLiveRoomsUsage: builder.mutation({
+      query: (body) => ({
+        url: body.path,
+        method: 'POST',
+        body: body?.reqBody,
+      }),
+    }),
   }),
 });
 
@@ -196,4 +203,5 @@ export const {
   useGetUserSettingsRequestQuery,
   useUpdateSettingsRequestMutation,
   useBlockUserRequestMutation,
+  usePostLiveRoomsUsageMutation,
 } = genericService;

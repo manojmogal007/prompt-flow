@@ -14,15 +14,22 @@ import DataProcessingNode from '../components/nodes/DataProcessingNode';
 import ModernSidebar from '../components/ModernSidebar';
 import ModernHeader from '../components/ModernHeader';
 import { ModernCanvas } from '../components/ModernCanvas';
+import { ExecutionPanel } from '../components/ExecutionPanel';
+import { MiniProgressHeader } from '../components/MiniProgressHeader';
+import { ExecutionHistoryDrawer } from '../components/ExecutionHistoryDrawer';
 
-import { useGetWorkflowRequestQuery } from '../../../utils/services/genericService';
-import { useApiQuery } from '../../../utils/customHooks/apiHooks';
+import {
+  useGetWorkflowRequestQuery,
+  useGetExecutionRequestQuery,
+  usePostExecutionRequestMutation,
+} from '../../../utils/services/genericService';
+import { useApiQuery, useApiMutation } from '../../../utils/customHooks/apiHooks';
 import { useAuth } from '../../../auth/useAuth';
 import { decodeNameAndId } from '../../../utils/helperFunctions/HelperFunctions';
 import { useToast } from '../../../hooks/useToast';
+import { useSettings } from '../../../hooks/useSettings';
 
 /* -------------------- DEFAULT INPUT NODE -------------------- */
-
 const inputNode = {
   id: 'cb02b245-7d6c-4925-96f2-c30328d972ba',
   type: 'inputNode',
@@ -51,6 +58,7 @@ const CollaborativeFlowCrafter: React.FC = () => {
   const { showToast } = useToast();
   const { encodedParams } = useParams();
   const { id: workflowId } = decodeNameAndId(encodedParams || '');
+  const { isExecutionLimitReached, refetchSettings } = useSettings();
 
   const lastWarningRef = useRef<number>(0);
 
@@ -63,11 +71,15 @@ const CollaborativeFlowCrafter: React.FC = () => {
     description: '',
   });
 
-  console.log('localNodes', localNodes);
-
   const { screenToFlowPosition } = useReactFlow();
   const [type, setType] = useDnD();
   const [draggingStepData, setDraggingStepData] = useState<any>(null);
+
+  /* -------------------- EXECUTION & HISTORY STATE -------------------- */
+  const [showExecutionPanel, setShowExecutionPanel] = useState(false);
+  const [executionId, setExecutionId] = useState<string | null>(null);
+  const [pollingInterval, setPollingInterval] = useState(0);
+  const [showHistoryDrawer, setShowHistoryDrawer] = useState(false);
 
   /* -------------------- API LOAD -------------------- */
 
@@ -78,7 +90,7 @@ const CollaborativeFlowCrafter: React.FC = () => {
   const userRole = workflow?.data?.userRole || '';
   const restrictEditing = userRole === 'viewer';
   const isOwner = userRole === 'owner';
-  const workflowCreatorId = workflow?.data?.workflow?.workflowJson?.creatorId || '';
+  // const workflowCreatorId = workflow?.data?.workflow?.workflowJson?.creatorId || '';
 
   /* -------------------- INIT FROM API -------------------- */
 
@@ -103,8 +115,90 @@ const CollaborativeFlowCrafter: React.FC = () => {
     });
   }, [workflow?.data?.workflow, encodedParams]);
 
-  /* -------------------- HELPERS -------------------- */
+  /* -------------------- EXECUTION LOGIC -------------------- */
 
+  // Poll for execution status
+  const statusQuery = useApiQuery(useGetExecutionRequestQuery, `/execution/execution/${executionId}?userId=${user?.id}`, {
+    skipQuery: !executionId,
+    polling: pollingInterval,
+  });
+  const executionStatus: any = statusQuery.data;
+
+  // Monitor execution status
+  useEffect(() => {
+    const status = executionStatus?.execution?.status;
+
+    if (status === 'running' || status === 'pending') {
+      setPollingInterval(2000);
+      if (showExecutionPanel) {
+        setShowExecutionPanel(false);
+      }
+    } else if (status === 'completed' || status === 'failed' || status === 'cancelled') {
+      setPollingInterval(0);
+      // Auto-open panel on completion if not already open
+      if ((status === 'completed' || status === 'failed') && !showExecutionPanel && executionId) {
+        setShowExecutionPanel(true);
+      }
+    }
+  }, [executionStatus, executionId]);
+
+  // Execute Mutation
+  const executeWorkflowMutation = useApiMutation(usePostExecutionRequestMutation, '/execution/execute', {
+    onError: (error: any) => showToast(error?.data?.message || 'Execution failed', 'error'),
+    onSuccess: () => refetchSettings(),
+  });
+
+  const handleExecute = async () => {
+    if (isExecutionLimitReached) {
+      showToast('Execution limit reached', 'warning', 'You have reached your execution limit. Please upgrade your plan.', 5000);
+      return;
+    }
+    // 1. Find Input Node text
+    const inputNodeElem: any = localNodes.find((n: any) => n.type === 'inputNode');
+
+    if (!inputNodeElem?.data?.text) {
+      showToast('Please enter text in the Input Node first', 'error');
+      setShowExecutionPanel(true);
+      return;
+    }
+
+    try {
+      const payload = {
+        workflowId,
+        workflowJson: { nodes: localNodes, edges: localEdges },
+        initialInput: inputNodeElem.data.text,
+        executionName: `Run ${new Date().toLocaleString()}`,
+        user,
+      };
+      const response: any = await executeWorkflowMutation.handleTrigger(payload);
+      if (response?.data?.executionId) {
+        setExecutionId(response.data.executionId);
+        setShowExecutionPanel(false);
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const handleHistoryClick = () => setShowHistoryDrawer(true);
+
+  const handleHistorySelect = (id: string) => {
+    setExecutionId(id);
+    setShowHistoryDrawer(false);
+    setShowExecutionPanel(true);
+  };
+
+  const restoreNodes = () => {
+    // Basic restore logic - strip styling if any was applied (though local version might not heavily style yet)
+    setLocalNodes((nds: any) =>
+      nds.map((n: any) => {
+        const { style, className, ...rest } = n;
+        return rest;
+      }),
+    );
+  };
+
+  /* -------------------- HELPERS -------------------- */
   const triggerWarning = () => {
     const now = Date.now();
     if (now - lastWarningRef.current < 3000) return;
@@ -231,7 +325,7 @@ const CollaborativeFlowCrafter: React.FC = () => {
     decisionNode: DecisionNodeWrapper,
     dataProcessingNode: DataProcessingNodeWrapper,
   };
-  console.log('workflowCreatorId', workflowCreatorId);
+
   return (
     <div className={`w-full bg-slate-50 dark:bg-dark-900 flex flex-col h-[calc(100vh-60px)]`}>
       <ModernHeader
@@ -241,7 +335,28 @@ const CollaborativeFlowCrafter: React.FC = () => {
         formData={localFormData}
         handleFormDataChange={handleFormDataChange}
         collaborators={[]}
-        // workflowCreatorId={workflowCreatorId}
+        onExecute={handleExecute}
+        onHistory={handleHistoryClick}
+        isExecuting={executeWorkflowMutation.isLoading || executionStatus?.execution?.status === 'running'}
+      />
+
+      {showExecutionPanel && (
+        <ExecutionPanel
+          nodes={localNodes}
+          edges={localEdges}
+          workflowId={workflowId}
+          onClose={() => setShowExecutionPanel(false)}
+          executionId={executionId}
+          setExecutionId={setExecutionId}
+          onRestoreNodes={restoreNodes}
+        />
+      )}
+
+      <ExecutionHistoryDrawer
+        isOpen={showHistoryDrawer}
+        onClose={() => setShowHistoryDrawer(false)}
+        onSelectExecution={handleHistorySelect}
+        workflowId={workflowId}
       />
 
       <div className='flex-1 flex overflow-hidden'>
@@ -250,6 +365,15 @@ const CollaborativeFlowCrafter: React.FC = () => {
         </div>
 
         <div className='flex-1 relative'>
+          {executionStatus &&
+            (executionStatus.execution.status === 'running' || executionStatus.execution.status === 'pending') &&
+            !showExecutionPanel && (
+              <MiniProgressHeader
+                status={executionStatus.execution.status}
+                progress={executionStatus.execution.progress}
+                currentStepName={executionStatus.execution.currentStepName}
+              />
+            )}
           <ModernCanvas
             nodes={localNodes}
             edges={localEdges}
@@ -268,9 +392,5 @@ const CollaborativeFlowCrafter: React.FC = () => {
 };
 
 export const LocalFlowCrafter: React.FC = () => {
-  // const { encodedParams } = useParams();
-  // const { id: workflowId } = decodeNameAndId(encodedParams || '');
-  // const { user } = useAuth();
-
   return <CollaborativeFlowCrafter />;
 };
