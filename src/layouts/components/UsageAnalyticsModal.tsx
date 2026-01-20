@@ -2,6 +2,7 @@ import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Zap, Workflow, Users, Crown } from 'lucide-react';
 import { useSettings } from '../../hooks/useSettings';
+import { calculatePercentage, getColor } from '../../utils/helperFunctions/HelperFunctions';
 
 interface UsageAnalyticsModalProps {
   isOpen: boolean;
@@ -41,11 +42,6 @@ export const UsageAnalyticsModal: React.FC<UsageAnalyticsModalProps> = ({ isOpen
       bgColor: 'bg-indigo-50 dark:bg-indigo-900/20',
     },
   ];
-
-  const getPercentage = (used: number, limit?: number) => {
-    if (isUnlimited || !limit) return 0;
-    return Math.min((used / limit) * 100, 100);
-  };
 
   return (
     <AnimatePresence>
@@ -104,29 +100,33 @@ export const UsageAnalyticsModal: React.FC<UsageAnalyticsModalProps> = ({ isOpen
 
               {/* Usage Metrics */}
               <div className='px-6 pb-6 space-y-6'>
-                {metrics.map((metric) => (
-                  <div key={metric.label}>
-                    <div className='flex items-center justify-between mb-2'>
-                      <div className='flex items-center gap-2'>
-                        <div className={`p-1.5 rounded-lg ${metric.bgColor} ${metric.textColor}`}>
-                          <metric.icon className='w-4 h-4' />
+                {metrics.map((metric) => {
+                  const percentage = calculatePercentage(metric.used, metric.limit);
+                  return (
+                    <div key={metric.label}>
+                      <div className='flex items-center justify-between mb-2'>
+                        <div className='flex items-center gap-2'>
+                          <div className={`p-1.5 rounded-lg ${metric.bgColor} ${metric.textColor}`}>
+                            <metric.icon className='w-4 h-4' />
+                          </div>
+                          <span className='font-medium text-gray-700 dark:text-gray-300 text-sm'>{metric.label}</span>
                         </div>
-                        <span className='font-medium text-gray-700 dark:text-gray-300 text-sm'>{metric.label}</span>
+                        <span className='text-sm font-semibold text-gray-900 dark:text-white'>
+                          <span className='border-r border-gray-200 dark:border-dark-700 pr-2 mr-2'>{percentage}%</span>
+                          {metric.used} <span className='text-gray-400 font-normal'>/ {isUnlimited ? '∞' : metric.limit}</span>
+                        </span>
                       </div>
-                      <span className='text-sm font-semibold text-gray-900 dark:text-white'>
-                        {metric.used} <span className='text-gray-400 font-normal'>/ {isUnlimited ? '∞' : metric.limit}</span>
-                      </span>
+                      <div className='h-2 bg-gray-100 dark:bg-dark-900 rounded-full overflow-hidden'>
+                        <motion.div
+                          initial={{ width: 0 }}
+                          animate={{ width: `${isUnlimited ? 100 : percentage}%` }}
+                          transition={{ duration: 1, ease: 'easeOut' }}
+                          className={`h-full rounded-full ${getColor(percentage, isUnlimited).color}`}
+                        />
+                      </div>
                     </div>
-                    <div className='h-2 bg-gray-100 dark:bg-dark-900 rounded-full overflow-hidden'>
-                      <motion.div
-                        initial={{ width: 0 }}
-                        animate={{ width: `${isUnlimited ? 100 : getPercentage(metric.used, metric.limit)}%` }}
-                        transition={{ duration: 1, ease: 'easeOut' }}
-                        className={`h-full rounded-full ${metric.color} ${isUnlimited ? 'opacity-30' : ''}`}
-                      />
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
 
               {/* {!isUnlimited && (

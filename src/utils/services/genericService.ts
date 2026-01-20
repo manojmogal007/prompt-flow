@@ -169,12 +169,32 @@ const genericService = baseApi.injectEndpoints({
       }),
       invalidatesTags: [{ type: 'settings' } as any],
     }),
+    getGlobalUserStatisticsRequest: builder.query({
+      query: (getQuery) => ({
+        url: getQuery,
+      }),
+      providesTags: [{ type: 'settings' } as any],
+    }),
     postLiveRoomsUsage: builder.mutation({
       query: (body) => ({
         url: body.path,
         method: 'POST',
         body: body?.reqBody,
       }),
+    }),
+    getUserSessionsRequest: builder.query({
+      query: (getQuery) => ({
+        url: getQuery,
+      }),
+      providesTags: [{ type: 'sessions' } as any],
+    }),
+    revokeSessionRequest: builder.mutation({
+      query: (body) => ({
+        url: body.path,
+        method: 'POST',
+        body: body?.reqBody,
+      }),
+      invalidatesTags: [{ type: 'sessions' } as any],
     }),
   }),
 });
@@ -204,4 +224,7 @@ export const {
   useUpdateSettingsRequestMutation,
   useBlockUserRequestMutation,
   usePostLiveRoomsUsageMutation,
+  useGetGlobalUserStatisticsRequestQuery,
+  useGetUserSessionsRequestQuery,
+  useRevokeSessionRequestMutation,
 } = genericService;

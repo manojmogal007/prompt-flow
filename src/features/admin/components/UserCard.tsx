@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Calendar, Shield, Workflow, Zap, Crown } from 'lucide-react';
-import { formatDate } from '../../../utils/helperFunctions/HelperFunctions';
+import { formatDate, calculatePercentage, getColor } from '../../../utils/helperFunctions/HelperFunctions';
 
 interface UserCardProps {
   user: any;
@@ -118,14 +118,22 @@ export const UserCard: React.FC<UserCardProps> = ({ user, onClick }) => {
                 <Workflow size={12} /> Workflows
               </span>
               <span className='font-medium text-gray-700 dark:text-gray-300'>
+                <span className='border-r border-gray-200 dark:border-dark-700 pr-2 mr-2'>
+                  {calculatePercentage(user?.workflowCreationUsage || 0, user?.workflowCreationLimit || 1, isUnlimited)}%
+                </span>{' '}
                 {user?.workflowCreationUsage || 0} / {isUnlimited ? '∞' : user?.workflowCreationLimit}
               </span>
             </div>
             <div className='h-1.5 w-full bg-gray-100 dark:bg-dark-700 rounded-full overflow-hidden'>
               <div
-                className={`h-full rounded-full ${isSuperAdmin ? 'bg-amber-500' : 'bg-blue-500'}`}
+                className={`h-full rounded-full ${
+                  getColor(
+                    calculatePercentage(user?.workflowCreationUsage || 0, user?.workflowCreationLimit || 1, isUnlimited),
+                    isUnlimited,
+                  ).color
+                }`}
                 style={{
-                  width: `${Math.min(((user?.workflowCreationUsage || 0) / Math.max(user?.workflowCreationLimit || 1, 1)) * 100, 100)}%`,
+                  width: `${calculatePercentage(user?.workflowCreationUsage || 0, user?.workflowCreationLimit || 1, isUnlimited)}%`,
                 }}
               />
             </div>
@@ -138,13 +146,20 @@ export const UserCard: React.FC<UserCardProps> = ({ user, onClick }) => {
                 <Zap size={12} /> Executions
               </span>
               <span className='font-medium text-gray-700 dark:text-gray-300'>
+                <span className='border-r border-gray-200 dark:border-dark-700 pr-2 mr-2'>
+                  {calculatePercentage(user?.workflowCreationUsage || 0, user?.workflowCreationLimit || 1, isUnlimited)}%
+                </span>{' '}
                 {user?.executionUsage || 0} / {isUnlimited ? '∞' : user?.executionLimit}
               </span>
             </div>
             <div className='h-1.5 w-full bg-gray-100 dark:bg-dark-700 rounded-full overflow-hidden'>
               <div
-                className={`h-full rounded-full ${isSuperAdmin ? 'bg-red-500' : 'bg-purple-500'}`}
-                style={{ width: `${Math.min(((user?.executionUsage || 0) / Math.max(user?.executionLimit || 1, 1)) * 100, 100)}%` }}
+                className={`h-full rounded-full ${
+                  getColor(calculatePercentage(user?.executionUsage || 0, user?.executionLimit || 1, isUnlimited), isUnlimited).color
+                }`}
+                style={{
+                  width: `${calculatePercentage(user?.executionUsage || 0, user?.executionLimit || 1, isUnlimited)}%`,
+                }}
               />
             </div>
           </div>

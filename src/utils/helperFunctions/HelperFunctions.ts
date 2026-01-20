@@ -43,3 +43,28 @@ export const formatDate = (dateString: string, time = false) => {
 };
 
 export const formatTime = (dateString: string) => new Date(dateString).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+
+export const calculatePercentage = (used: number, limit: number, isUnlimited: boolean = false) => {
+  if (isUnlimited) return 100;
+  return Math.round(Math.min((used / limit) * 100, 100));
+};
+
+export const getColor = (percentage: number, isUnlimited: boolean = false) => {
+  if (percentage < 50 || isUnlimited)
+    return {
+      textColor: 'text-green-600 dark:text-green-400',
+      bgColor: 'bg-green-50 dark:bg-green-900/20',
+      color: 'bg-green-500',
+    };
+  if (percentage < 75)
+    return {
+      textColor: 'text-yellow-600 dark:text-yellow-400',
+      bgColor: 'bg-yellow-50 dark:bg-yellow-900/20',
+      color: 'bg-yellow-500',
+    };
+  return {
+    textColor: 'text-red-600 dark:text-red-400',
+    bgColor: 'bg-red-50 dark:bg-red-900/20',
+    color: 'bg-red-500',
+  };
+};

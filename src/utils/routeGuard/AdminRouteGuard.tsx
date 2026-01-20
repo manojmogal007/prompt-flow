@@ -3,9 +3,9 @@ import { Navigate, Outlet } from 'react-router';
 import { useSettings } from '../../hooks/useSettings';
 
 export const AdminRouteGuard: React.FC = () => {
-  const { isAdmin } = useSettings();
+  const { isAdmin, isSuperAdmin } = useSettings();
 
-  if (!isAdmin) {
+  if (!isAdmin && !isSuperAdmin) {
     return <Navigate to='/prompt-flow/workflows' />;
   }
 
